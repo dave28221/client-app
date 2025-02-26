@@ -156,19 +156,27 @@
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error("HTTP error! status:", response.status, "Response text:", errorText);
+        alert(`HTTP error! status: ${response.status}. See console for details.`);
+        return;
       }
 
-      const result = await response.json();
+      try {
+        const result = await response.json();
 
-      if (result.success) {
-        alert(result.message);
-      } else {
-        alert(result.error);
+        if (result.success) {
+          alert(result.message);
+        } else {
+          alert(result.error);
+        }
+      } catch (jsonError) {
+        console.error("Error parsing JSON:", jsonError);
+        alert("Error parsing JSON response. See console for details.");
       }
     } catch (error) {
       console.error("Error uploading data:", error);
-      alert("Error uploading data. Please try again.");
+      alert("Error uploading data. Please try again. See console for details.");
     }
   }
 
