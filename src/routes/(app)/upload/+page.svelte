@@ -1,204 +1,95 @@
 <script>
-  import { onMount } from 'svelte';
-
-  let file;
-  let headers = [];
-  let data = [];
-  let columnMappings = [];
-
-  const tableColumns = {
-    lawfirm: [
-      "lawfirmname",
-      "clientstatus",
-      "websiteurl",
-      "address1",
-      "address2",
-      "city",
-      "stateregion",
-      "postalcode",
-      "country",
-      "phonenumber",
-      "emailaddress",
-      "description",
-      "numberofemployeees",
-    ],
-    lawyerscontactprofiles: [
-      "firstname",
-      "lastname",
-      "email",
-      "phone",
-      "profilepicture",
-      "position",
-      "accountemail",
-      "accountphone",
-      "addressline1",
-      "suburb",
-      "postcode",
-      "state",
-      "country",
-      "website",
-      "lawfirmname",
-    ],
-    products: [
-      "websitedevelopment",
-      "websitehosting",
-      "websitemanagement",
-      "newsletters",
-      "searchengineoptimisation",
-      "socialmediamanagement",
-      "websiteperformance",
-      "advertising",
-      "lawfirmname",
-    ],
-    websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
+async function handleDataInsert() {
+  const formattedData = {
+    lawfirm: [],
+    lawyerscontactprofiles: [],
+    products: [],
+    websites: [],
   };
 
-  function handleFileChange(event) {
-    file = event.target.files[0];
-    console.log("File selected:", file);
-  }
+  data.forEach((row) => {
+    const lawfirmObj = {};
+    const lawyerscontactprofilesObj = {};
+    const productsObj = {};
+    const websitesObj = {};
 
-  async function handleFileUpload() {
-    if (!file) {
-      alert("Please select a file to upload.");
+    columnMappings.forEach(({ header, table, column }, index) => {
+      const value = row[index] ? row[index].trim() : "";
+      if (table && column) {
+        if (table === "lawfirm") {
+          lawfirmObj[column] = value;
+        } else if (table === "lawyerscontactprofiles") {
+          lawyerscontactprofilesObj[column] = value;
+        } else if (table === "products") {
+          productsObj[column] = value;
+        } else if (table === "websites") {
+          websitesObj[column] = value;
+        }
+      }
+    });
+
+    if (Object.keys(lawfirmObj).length)
+      formattedData.lawfirm.push(lawfirmObj);
+    if (Object.keys(lawyerscontactprofilesObj).length)
+      formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
+    if (Object.keys(productsObj).length)
+      formattedData.products.push(productsObj);
+    if (Object.keys(websitesObj).length)
+      formattedData.websites.push(websitesObj);
+  });
+
+  console.log("Formatted Data:", formattedData);
+
+  // Remove duplicates
+  formattedData.lawfirm = removeDuplicates(
+    formattedData.lawfirm,
+    "lawfirmname",
+  );
+  formattedData.lawyerscontactprofiles = removeDuplicates(
+    formattedData.lawyerscontactprofiles,
+    "lawyerid",
+  );
+  formattedData.products = removeDuplicates(
+    formattedData.products,
+    "productid",
+  );
+  formattedData.websites = removeDuplicates(
+    formattedData.websites,
+    "websiteid",
+  );
+
+  try {
+    const response = await fetch("/upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formattedData),
+    });
+
+    // Check if response is JSON
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const errorText = await response.text();
+      console.error("Server returned non-JSON response:", errorText);
+      alert("Error: Server response is not JSON. Check console.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const csvData = event.target.result;
-      const rows = csvData.split("\n").map((row) => row.split(","));
+    const result = await response.json();
 
-      // Assuming the first row contains the column names
-      [headers, ...data] = rows;
-
-      // Initialize column mappings
-      columnMappings = headers.map((header) => ({
-        header,
-        table: "",
-        column: "",
-      }));
-
-      console.log("Headers:", headers);
-      console.log("Data:", data);
-      console.log("Column Mappings:", columnMappings);
-    };
-
-    reader.readAsText(file);
-  }
-
-  async function handleDataInsert() {
-    const formattedData = {
-      lawfirm: [],
-      lawyerscontactprofiles: [],
-      products: [],
-      websites: [],
-    };
-
-    data.forEach((row) => {
-      const lawfirmObj = {};
-      const lawyerscontactprofilesObj = {};
-      const productsObj = {};
-      const websitesObj = {};
-
-      columnMappings.forEach(({ header, table, column }, index) => {
-        const value = row[index] ? row[index].trim() : "";
-        if (table && column) {
-          if (table === "lawfirm") {
-            lawfirmObj[column] = value;
-          } else if (table === "lawyerscontactprofiles") {
-            lawyerscontactprofilesObj[column] = value;
-          } else if (table === "products") {
-            productsObj[column] = value;
-          } else if (table === "websites") {
-            websitesObj[column] = value;
-          }
-        }
-      });
-
-      if (Object.keys(lawfirmObj).length)
-        formattedData.lawfirm.push(lawfirmObj);
-      if (Object.keys(lawyerscontactprofilesObj).length)
-        formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
-      if (Object.keys(productsObj).length)
-        formattedData.products.push(productsObj);
-      if (Object.keys(websitesObj).length)
-        formattedData.websites.push(websitesObj);
-    });
-
-    console.log("Formatted Data:", formattedData);
-
-    // Remove duplicates
-    formattedData.lawfirm = removeDuplicates(
-      formattedData.lawfirm,
-      "lawfirmname",
-    );
-    formattedData.lawyerscontactprofiles = removeDuplicates(
-      formattedData.lawyerscontactprofiles,
-      "lawyerid",
-    );
-    formattedData.products = removeDuplicates(
-      formattedData.products,
-      "productid",
-    );
-    formattedData.websites = removeDuplicates(
-      formattedData.websites,
-      "websiteid",
-    );
-
-    const formData = new FormData();
-    formData.append("data", JSON.stringify(formattedData));
-
-    try {
-      const response = await fetch("/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("HTTP error! status:", response.status, "Response text:", errorText);
-        alert(`HTTP error! status: ${response.status}. See console for details.`);
-        return;
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const errorText = await response.text();
-        console.error("Error: Non-JSON response:", errorText);
-        alert("Error: Non-JSON response received. See console for details.");
-        return;
-      }
-
-      try {
-        const result = await response.json();
-
-        if (result.success) {
-          alert(result.message);
-        } else {
-          alert(result.error);
-        }
-      } catch (jsonError) {
-        console.error("Error parsing JSON:", jsonError);
-        alert("Error parsing JSON response. See console for details.");
-      }
-    } catch (error) {
-      console.error("Error uploading data:", error);
-      alert("Error uploading data. Please try again. See console for details.");
+    if (response.ok) {
+      alert(result.message || "Upload successful");
+    } else {
+      console.error("Upload error:", result.error);
+      alert(result.error || "Error uploading data");
     }
+  } catch (error) {
+    console.error("Network error:", error);
+    alert("Network error. Check console.");
   }
+}
 
-  function removeDuplicates(data, uniqueColumn) {
-    const seen = new Set();
-    return data.filter((item) => {
-      const value = item[uniqueColumn];
-      if (seen.has(value)) {
-        return false;
-      }
-      seen.add(value);
-      return true;
-    });
-  }
 </script>
 
 <div class="homeBanner">
