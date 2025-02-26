@@ -28,4 +28,59 @@ async function insertData(table, data, uniqueColumn) {
   }
 }
 
-export const actions = {};
+export const actions = {
+  upload: async ({ request }) => {
+    const formData = await request.formData();
+    const data = formData.get('data');
+
+    if (!data) {
+      return fail(400, { error: 'No data provided' });
+    }
+
+    try {
+      const formattedData = JSON.parse(data);
+
+      // Validate data
+      if (
+        !Array.isArray(formattedData?.lawfirm) ||
+        !Array.isArray(formattedData?.lawyerscontactprofiles) ||
+        !Array.isArray(formattedData?.products) ||
+        !Array.isArray(formattedData?.websites)
+      ) {
+        return fail(400, { error: 'Invalid data format' });
+      }
+
+      // Remove duplicates
+      formattedData.lawfirm = removeDuplicates(
+        formattedData.lawfirm,
+        "lawfirmname",
+      );
+      formattedData.lawyerscontactprofiles = removeDuplicates(
+        formattedData.lawyerscontactprofiles,
+        "lawyerid",
+      );
+      formattedData.products = removeDuplicates(
+        formattedData.products,
+        "productid",
+      );
+      formattedData.websites = removeDuplicates(
+        formattedData.websites,
+        "websiteid",
+      );
+
+      await insertData("lawfirm", formattedData.lawfirm, "lawfirmname");
+      await insertData(
+        "lawyerscontactprofiles",
+        formattedData.lawyerscontactprofiles,
+        "lawyerid",
+      );
+      await insertData("products", formattedData.products, "productid");
+      await insertData("websites", formattedData.websites, "websiteid");
+
+      return { success: true, message: 'CSV imported successfully' };
+    } catch (error) {
+      console.error('Error processing CSV:', error);
+      return fail(500, { error: 'Error importing data' });
+    }
+  }
+};
