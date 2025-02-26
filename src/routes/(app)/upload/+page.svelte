@@ -1,5 +1,4 @@
 <script>
-
   let file;
   let headers = [];
   let data = [];
@@ -306,8 +305,6 @@
     font-size: 16px;
     transition: border-color 0.3s ease;
   }
-  
-  
 
   .insertButton {
     background-color: #6161ff;
