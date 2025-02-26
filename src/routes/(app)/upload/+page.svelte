@@ -1,5 +1,5 @@
 <script>
-async function handleDataInsert() {
+  async function handleDataInsert() {
   const formattedData = {
     lawfirm: [],
     lawyerscontactprofiles: [],
@@ -198,11 +198,8 @@ async function handleDataInsert() {
     font-size: 16px;
     transition: border-color 0.3s ease;
   }
-
-  .mappingRow select:focus {
-    border-color: #007bff;
-    outline: none;
-  }
+  
+  
 
   .insertButton {
     background-color: #6161ff;

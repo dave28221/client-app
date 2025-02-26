@@ -1,4 +1,4 @@
-import { fail } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 import { supabase } from '../../../lib/supabaseClient';
 
 function removeDuplicates(data, uniqueColumn) {
@@ -18,69 +18,53 @@ async function insertData(table, data, uniqueColumn) {
 
   const { data: supabaseData, error } = await supabase
     .from(table)
-    .upsert(data, { onConflict: [uniqueColumn] });
+    .upsert(data, { onConflict: uniqueColumn });
 
   if (error) {
     console.error(`Error inserting data into ${table}:`, error);
-    throw new Error(`Error inserting data into ${table}`);
-  } else {
-    console.log(`Data inserted successfully into ${table}:`, supabaseData);
+    throw new Error(`Database error: ${error.message}`);
   }
+
+  return supabaseData;
 }
 
 export const actions = {
   upload: async ({ request }) => {
-    const formData = await request.formData();
-    const data = formData.get('data');
-
-    if (!data) {
-      return fail(400, { error: 'No data provided' });
-    }
-
     try {
-      const formattedData = JSON.parse(data);
+      const formData = await request.json(); // Ensure we're parsing JSON
+      console.log("Received Data:", formData);
 
-      // Validate data
+      if (!formData) {
+        return json({ success: false, error: "No data provided" }, { status: 400 });
+      }
+
+      // Validate data format
+      const { lawfirm, lawyerscontactprofiles, products, websites } = formData;
       if (
-        !Array.isArray(formattedData?.lawfirm) ||
-        !Array.isArray(formattedData?.lawyerscontactprofiles) ||
-        !Array.isArray(formattedData?.products) ||
-        !Array.isArray(formattedData?.websites)
+        !Array.isArray(lawfirm) ||
+        !Array.isArray(lawyerscontactprofiles) ||
+        !Array.isArray(products) ||
+        !Array.isArray(websites)
       ) {
-        return fail(400, { error: 'Invalid data format' });
+        return json({ success: false, error: "Invalid data format" }, { status: 400 });
       }
 
       // Remove duplicates
-      formattedData.lawfirm = removeDuplicates(
-        formattedData.lawfirm,
-        "lawfirmname",
-      );
-      formattedData.lawyerscontactprofiles = removeDuplicates(
-        formattedData.lawyerscontactprofiles,
-        "lawyerid",
-      );
-      formattedData.products = removeDuplicates(
-        formattedData.products,
-        "productid",
-      );
-      formattedData.websites = removeDuplicates(
-        formattedData.websites,
-        "websiteid",
-      );
+      formData.lawfirm = removeDuplicates(lawfirm, "lawfirmname");
+      formData.lawyerscontactprofiles = removeDuplicates(lawyerscontactprofiles, "lawyerid");
+      formData.products = removeDuplicates(products, "productid");
+      formData.websites = removeDuplicates(websites, "websiteid");
 
-      await insertData("lawfirm", formattedData.lawfirm, "lawfirmname");
-      await insertData(
-        "lawyerscontactprofiles",
-        formattedData.lawyerscontactprofiles,
-        "lawyerid",
-      );
-      await insertData("products", formattedData.products, "productid");
-      await insertData("websites", formattedData.websites, "websiteid");
+      // Insert into Supabase
+      await insertData("lawfirm", formData.lawfirm, "lawfirmname");
+      await insertData("lawyerscontactprofiles", formData.lawyerscontactprofiles, "lawyerid");
+      await insertData("products", formData.products, "productid");
+      await insertData("websites", formData.websites, "websiteid");
 
-      return { success: true, message: 'CSV imported successfully' };
+      return json({ success: true, message: "CSV imported successfully" });
     } catch (error) {
-      console.error('Error processing CSV:', error);
-      return fail(500, { error: 'Error importing data' });
+      console.error("Error processing CSV:", error);
+      return json({ success: false, error: "Error importing data" }, { status: 500 });
     }
   }
 };
