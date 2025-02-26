@@ -1,4 +1,6 @@
 <script>
+  import { onMount } from 'svelte';
+
   let file;
   let headers = [];
   let data = [];
@@ -147,17 +149,26 @@
     const formData = new FormData();
     formData.append("data", JSON.stringify(formattedData));
 
-    const response = await fetch("/upload", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const response = await fetch("/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-    const result = await response.json();
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    if (result.success) {
-      alert(result.message);
-    } else {
-      alert(result.error);
+      const result = await response.json();
+
+      if (result.success) {
+        alert(result.message);
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      console.error("Error uploading data:", error);
+      alert("Error uploading data. Please try again.");
     }
   }
 
@@ -204,8 +215,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
