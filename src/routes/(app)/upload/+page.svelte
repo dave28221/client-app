@@ -145,11 +145,11 @@
     );
 
     const formData = new FormData();
-    formData.append('data', JSON.stringify(formattedData));
+    formData.append("data", JSON.stringify(formattedData));
 
-    const response = await fetch('?/upload', {
-      method: 'POST',
-      body: formData
+    const response = await fetch("/upload", {
+      method: "POST",
+      body: formData,
     });
 
     const result = await response.json();
@@ -286,13 +286,12 @@
     border-color: #007bff;
     outline: none;
   }
-   
-  .insertButton{
-    background-color: #6161ff;
-    color:#ffffff;
-    margin-top:20px;
-    margin-left:5%;
-    margin-bottom:50px;
-  }
 
+  .insertButton {
+    background-color: #6161ff;
+    color: #ffffff;
+    margin-top: 20px;
+    margin-left: 5%;
+    margin-bottom: 50px;
+  }
 </style>
