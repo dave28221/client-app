@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { supabase } from '$lib/supabaseClient';
 
   let file;
   let headers = [];
@@ -87,6 +88,27 @@
     reader.readAsText(file);
   }
 
+  async function insertData(table, data, uniqueColumn) {
+    if (data.length === 0) return;
+
+    try {
+      const { data: supabaseData, error } = await supabase
+        .from(table)
+        .upsert(data, { onConflict: [uniqueColumn] });
+
+      if (error) {
+        console.error(`Error inserting data into ${table}:`, error);
+        alert(`Error inserting data into ${table}. See console for details.`);
+      } else {
+        console.log(`Data inserted successfully into ${table}:`, supabaseData);
+        alert(`Data inserted successfully into ${table}.`);
+      }
+    } catch (error) {
+      console.error(`Error inserting data into ${table}:`, error);
+      alert(`Error inserting data into ${table}. See console for details.`);
+    }
+  }
+
   async function handleDataInsert() {
     const formattedData = {
       lawfirm: [],
@@ -146,45 +168,20 @@
       "websiteid",
     );
 
-    const formData = new FormData();
-    formData.append("data", JSON.stringify(formattedData));
-
     try {
-      const response = await fetch("/upload", {
-        method: "POST",
-        body: formData,
-      });
+      await insertData("lawfirm", formattedData.lawfirm, "lawfirmname");
+      await insertData(
+        "lawyerscontactprofiles",
+        formattedData.lawyerscontactprofiles,
+        "lawyerid",
+      );
+      await insertData("products", formattedData.products, "productid");
+      await insertData("websites", formattedData.websites, "websiteid");
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("HTTP error! status:", response.status, "Response text:", errorText);
-        alert(`HTTP error! status: ${response.status}. See console for details.`);
-        return;
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const errorText = await response.text();
-        console.error("Error: Non-JSON response:", errorText);
-        alert("Error: Non-JSON response received. See console for details.");
-        return;
-      }
-
-      try {
-        const result = await response.json();
-
-        if (result.success) {
-          alert(result.message);
-        } else {
-          alert(result.error);
-        }
-      } catch (jsonError) {
-        console.error("Error parsing JSON:", jsonError);
-        alert("Error parsing JSON response. See console for details.");
-      }
+      alert('CSV imported successfully');
     } catch (error) {
-      console.error("Error uploading data:", error);
-      alert("Error uploading data. Please try again. See console for details.");
+      console.error('Error processing CSV:', error);
+      alert('Error importing data');
     }
   }
 
