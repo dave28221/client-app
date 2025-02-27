@@ -58,7 +58,7 @@
 
   async function handleFileUpload() {
     if (!file) {
-      alert("Please select a file to upload.");
+      console.log("Please select a file to upload.");
       return;
     }
 
@@ -100,7 +100,8 @@
       const websitesObj = {};
 
       columnMappings.forEach(({ header, table, column }, index) => {
-        const value = row[index] ? row[index].trim() : "";
+        let value = row[index] ? row[index].trim() : "";
+        value = value === "" ? null : value; // Convert empty strings to null
         if (table && column) {
           if (table === "lawfirm") {
             lawfirmObj[column] = value;
