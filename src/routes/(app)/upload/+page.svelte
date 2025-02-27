@@ -124,6 +124,20 @@
         }
       });
 
+      // Ensure lawfirmname is propagated to other tables
+      const lawfirmname = lawfirmObj.lawfirmname;
+      if (lawfirmname) {
+        if (!lawyerscontactprofilesObj.lawfirmname) {
+          lawyerscontactprofilesObj.lawfirmname = lawfirmname;
+        }
+        if (!productsObj.lawfirmname) {
+          productsObj.lawfirmname = lawfirmname;
+        }
+        if (!websitesObj.lawfirmname) {
+          websitesObj.lawfirmname = lawfirmname;
+        }
+      }
+
       if (Object.keys(lawfirmObj).length)
         formattedData.lawfirm.push(lawfirmObj);
       if (Object.keys(lawyerscontactprofilesObj).length)
@@ -187,7 +201,6 @@
         return;
       }
 
-      
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         const errorText = await response.text();
