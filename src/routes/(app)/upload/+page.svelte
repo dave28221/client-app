@@ -187,6 +187,7 @@
         return;
       }
 
+      
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         const errorText = await response.text();
