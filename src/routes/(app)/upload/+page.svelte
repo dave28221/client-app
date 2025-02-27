@@ -174,7 +174,7 @@
         if (result.success) {
           alert(result.message);
         } else {
-          alert(result.error);
+          alert(result.error || "An error occurred.");
         }
       } catch (jsonError) {
         console.error("Error parsing JSON:", jsonError);
@@ -209,7 +209,6 @@
 
 {#if headers.length}
   <div class="mappingSection">
-    <!--<h2>Map CSV Columns to Table Columns</h2>-->
     {#each columnMappings as mapping, index}
       <div class="mappingRow">
         <label for="table-{index}">{mapping.header}</label>
