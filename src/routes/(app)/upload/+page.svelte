@@ -1,7 +1,56 @@
 <script>
   let file;
   let headers = [];
+  import Papa from 'papaparse';
   let data = [];
+  let columnMappings = [];
+
+  const tableColumns = {
+    lawfirm: [
+      "lawfirmname",
+      "clientstatus",
+      "websiteurl",
+      "address1",
+      "address2",
+      "city",
+      "stateregion",
+      "postalcode",
+      "country",
+      "phonenumber",
+      "emailaddress",
+      "description",
+      "numberofemployeees",
+    ],
+    lawyerscontactprofiles: [
+      "firstname",
+      "lastname",
+      "email",
+      "phone",
+      "profilepicture",
+      "position",
+      "accountemail",
+      "accountphone",
+      "addressline1",
+      "suburb",
+      "postcode",
+      "state",
+      "country",
+      "website",
+      "lawfirmname",
+    ],
+    products: [
+      "websitedevelopment",
+      "websitehosting",
+      "websitemanagement",
+      "newsletters",
+      "searchengineoptimisation",
+      "socialmediamanagement",
+      "websiteperformance",
+      "advertising",
+      "lawfirmname",
+    ],
+    websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
+  };
 
   function handleFileChange(event) {
     file = event.target.files[0];
@@ -17,15 +66,155 @@
     const reader = new FileReader();
     reader.onload = (event) => {
       const csvData = event.target.result;
-      const rows = csvData.split("\n");
-      headers = rows[0] ? rows[0].split(",") : [];
-      data = rows.slice(1).map((row) => row.split(","));
 
-      console.log("Headers:", headers);
-      console.log("Data:", data);
+      Papa.parse(csvData, {
+        header: true,
+        complete: (results) => {
+          headers = results.meta.fields;
+          data = results.data;
+
+          // Initialize column mappings
+          columnMappings = headers.map((header) => ({
+            header,
+            table: "",
+            column: "",
+          }));
+
+          console.log("Headers:", headers);
+          console.log("Data:", data);
+          console.log("Column Mappings:", columnMappings);
+        },
+      });
     };
 
     reader.readAsText(file);
+  }
+
+  async function handleDataInsert() {
+    const formattedData = {
+      lawfirm: [],
+      lawyerscontactprofiles: [],
+      products: [],
+      websites: [],
+    };
+
+    data.forEach((row) => {
+      const lawfirmObj = {};
+      const lawyerscontactprofilesObj = {};
+      const productsObj = {};
+      const websitesObj = {};
+
+      columnMappings.forEach(({ header, table, column }) => {
+        const value = row[header] ? row[header].trim() : "";
+        if (table && column) {
+          if (table === "lawfirm") {
+            lawfirmObj[column] = value;
+          } else if (table === "lawyerscontactprofiles") {
+            lawyerscontactprofilesObj[column] = value;
+          } else if (table === "products") {
+            productsObj[column] = value;
+          } else if (table === "websites") {
+            websitesObj[column] = value;
+          }
+        }
+      });
+
+      if (Object.keys(lawfirmObj).length)
+        formattedData.lawfirm.push(lawfirmObj);
+      if (Object.keys(lawyerscontactprofilesObj).length)
+        formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
+      if (Object.keys(productsObj).length)
+        formattedData.products.push(productsObj);
+      if (Object.keys(websitesObj).length)
+        formattedData.websites.push(websitesObj);
+    });
+
+    console.log("Formatted Data:", formattedData);
+
+    // Remove duplicates
+    formattedData.lawfirm = removeDuplicates(
+      formattedData.lawfirm,
+      "lawfirmname",
+    );
+    formattedData.lawyerscontactprofiles = removeDuplicates(
+      formattedData.lawyerscontactprofiles,
+      "lawyerid",
+    );
+    formattedData.products = removeDuplicates(
+      formattedData.products,
+      "productid",
+    );
+    formattedData.websites = removeDuplicates(
+      formattedData.websites,
+      "websiteid",
+    );
+
+    // Validate column mappings
+    for (const table in formattedData) {
+      if (formattedData.hasOwnProperty(table)) {
+        const dataArray = formattedData[table];
+        if (dataArray.length > 0) {
+          const firstItem = dataArray[0];
+          for (const key in firstItem) {
+            if (firstItem.hasOwnProperty(key)) {
+              if (!tableColumns[table].includes(key)) {
+                console.error(`Invalid column mapping: Table ${table} has column ${key} which is not in tableColumns`);
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(formattedData));
+
+    try {
+      const response = await fetch("/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("HTTP error! status:", response.status, "Response text:", errorText);
+        return;
+      }
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const errorText = await response.text();
+        console.error("Error: Non-JSON response:", errorText);
+        return;
+      }
+
+      try {
+        const result = await response.json();
+
+        if (result.success) {
+          console.log(result.message);
+        } else {
+          console.error(result.error);
+        }
+      } catch (jsonError) {
+        console.error("Error parsing JSON:", jsonError);
+      }
+    } catch (error) {
+      console.error("Error uploading data:", error);
+    }
+  }
+
+  function removeDuplicates(data, uniqueColumn) {
+    const seen = new Set();
+    return data.filter((item) => {
+      const value = item[uniqueColumn];
+      if (seen.has(value)) {
+        return false;
+      }
+      seen.add(value);
+      return true;
+    });
   }
 </script>
 
@@ -38,24 +227,28 @@
 </div>
 
 {#if headers.length}
-  <table>
-    <thead>
-      <tr>
-        {#each headers as header}
-          <th>{header}</th>
-        {/each}
-      </tr>
-    </thead>
-    <tbody>
-      {#each data as row}
-        <tr>
-          {#each row as cell}
-            <td>{cell}</td>
+  <div class="mappingSection">
+    {#each columnMappings as mapping, index}
+      <div class="mappingRow">
+        <label for="table-{index}">{mapping.header}</label>
+        <select id="table-{index}" bind:value={mapping.table}>
+          <option value="">Select table</option>
+          {#each Object.keys(tableColumns) as table}
+            <option value={table}>{table}</option>
           {/each}
-        </tr>
-      {/each}
-    </tbody>
-  </table>
+        </select>
+        {#if mapping.table}
+          <select id="column-{index}" bind:value={mapping.column}>
+            <option value="">Select column</option>
+            {#each tableColumns[mapping.table] as column}
+              <option value={column}>{column}</option>
+            {/each}
+          </select>
+        {/if}
+      </div>
+    {/each}
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+  </div>
 {/if}
 
 <style>
