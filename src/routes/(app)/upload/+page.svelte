@@ -82,7 +82,6 @@
           headers = Object.keys(output[0]);
           data = output;
 
-          // Initialize column mappings
           columnMappings = headers.map((header) => ({
             header,
             table: "",
@@ -108,7 +107,7 @@
     };
 
     data.forEach((row) => {
-      let lawfirmname = ""; // Store lawfirmname globally within the loop
+      let lawfirmname = "";
 
       const lawfirmObj = {};
       const lawyerscontactprofilesObj = {};
@@ -121,7 +120,7 @@
           if (table === "lawfirm") {
             lawfirmObj[column] = value;
             if (column === "lawfirmname") {
-              lawfirmname = value; // Capture the lawfirmname for other tables
+              lawfirmname = value;
             }
           } else if (table === "lawyerscontactprofiles") {
             lawyerscontactprofilesObj[column] = value;
@@ -133,21 +132,10 @@
         }
       });
 
-      // Ensure lawfirmname is propagated correctly
-      if (!lawfirmname) {
-        console.warn("Lawfirm name missing for row:", row);
-      }
-
       if (lawfirmname) {
-        if (!lawyerscontactprofilesObj.lawfirmname) {
-          lawyerscontactprofilesObj.lawfirmname = lawfirmname;
-        }
-        if (!productsObj.lawfirmname) {
-          productsObj.lawfirmname = lawfirmname;
-        }
-        if (!websitesObj.lawfirmname) {
-          websitesObj.lawfirmname = lawfirmname;
-        }
+        lawyerscontactprofilesObj.lawfirmname ||= lawfirmname;
+        productsObj.lawfirmname ||= lawfirmname;
+        websitesObj.lawfirmname ||= lawfirmname;
       }
 
       if (Object.keys(lawfirmObj).length)
@@ -162,7 +150,6 @@
 
     console.log("Formatted Data:", formattedData);
 
-    // Remove duplicates based on unique identifiers
     formattedData.lawfirm = removeDuplicates(
       formattedData.lawfirm,
       "lawfirmname",
@@ -176,26 +163,6 @@
       "lawfirmname",
     );
     formattedData.websites = removeDuplicates(formattedData.websites, "url");
-
-    // Ensure column mappings are valid
-    for (const table in formattedData) {
-      if (formattedData.hasOwnProperty(table)) {
-        const dataArray = formattedData[table];
-        if (dataArray.length > 0) {
-          const firstItem = dataArray[0];
-          for (const key in firstItem) {
-            if (firstItem.hasOwnProperty(key)) {
-              if (!tableColumns[table].includes(key)) {
-                console.error(
-                  `Invalid column mapping: Table ${table} has column ${key} which is not in tableColumns`,
-                );
-                return;
-              }
-            }
-          }
-        }
-      }
-    }
 
     const formData = new FormData();
     formData.append("data", JSON.stringify(formattedData));
@@ -224,16 +191,11 @@
         return;
       }
 
-      try {
-        const result = await response.json();
-
-        if (result.success) {
-          console.log(result.message);
-        } else {
-          console.error(result.error);
-        }
-      } catch (jsonError) {
-        console.error("Error parsing JSON:", jsonError);
+      const result = await response.json();
+      if (result.success) {
+        console.log(result.message);
+      } else {
+        console.error(result.error);
       }
     } catch (error) {
       console.error("Error uploading data:", error);
