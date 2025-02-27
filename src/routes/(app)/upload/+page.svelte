@@ -144,6 +144,24 @@
       "websiteid",
     );
 
+    // Validate column mappings
+    for (const table in formattedData) {
+      if (formattedData.hasOwnProperty(table)) {
+        const dataArray = formattedData[table];
+        if (dataArray.length > 0) {
+          const firstItem = dataArray[0];
+          for (const key in firstItem) {
+            if (firstItem.hasOwnProperty(key)) {
+              if (!tableColumns[table].includes(key)) {
+                console.error(`Invalid column mapping: Table ${table} has column ${key} which is not in tableColumns`);
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+
     const formData = new FormData();
     formData.append("data", JSON.stringify(formattedData));
 
@@ -156,7 +174,6 @@
       if (!response.ok) {
         const errorText = await response.text();
         console.error("HTTP error! status:", response.status, "Response text:", errorText);
-        alert(`HTTP error! status: ${response.status}. See console for details.`);
         return;
       }
 
@@ -164,7 +181,6 @@
       if (!contentType || !contentType.includes("application/json")) {
         const errorText = await response.text();
         console.error("Error: Non-JSON response:", errorText);
-        alert("Error: Non-JSON response received. See console for details.");
         return;
       }
 
@@ -172,17 +188,15 @@
         const result = await response.json();
 
         if (result.success) {
-          alert(result.message);
+          console.log(result.message);
         } else {
-          alert(result.error);
+          console.error(result.error);
         }
       } catch (jsonError) {
         console.error("Error parsing JSON:", jsonError);
-        alert("Error parsing JSON response. See console for details.");
       }
     } catch (error) {
       console.error("Error uploading data:", error);
-      alert("Error uploading data. Please try again. See console for details.");
     }
   }
 
