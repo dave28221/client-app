@@ -1,7 +1,7 @@
 <script>
+  import { parse } from 'csv-parse';
   let file;
   let headers = [];
-  import Papa from 'papaparse';
   let data = [];
   let columnMappings = [];
 
@@ -64,26 +64,31 @@
     }
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const csvData = event.target.result;
 
-      Papa.parse(csvData, {
-        header: true,
-        complete: (results) => {
-          headers = results.meta.fields;
-          data = results.data;
+      parse(csvData, {
+        columns: true,
+        skip_empty_lines: true
+      }, (err, output) => {
+        if (err) {
+          console.error("Error parsing CSV:", err);
+          return;
+        }
 
-          // Initialize column mappings
-          columnMappings = headers.map((header) => ({
-            header,
-            table: "",
-            column: "",
-          }));
+        headers = Object.keys(output[0]);
+        data = output;
 
-          console.log("Headers:", headers);
-          console.log("Data:", data);
-          console.log("Column Mappings:", columnMappings);
-        },
+        // Initialize column mappings
+        columnMappings = headers.map((header) => ({
+          header,
+          table: "",
+          column: "",
+        }));
+
+        console.log("Headers:", headers);
+        console.log("Data:", data);
+        console.log("Column Mappings:", columnMappings);
       });
     };
 
