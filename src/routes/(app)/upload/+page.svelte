@@ -104,9 +104,8 @@
       const productsObj = {};
       const websitesObj = {};
 
-      columnMappings.forEach(({ header, table, column }, index) => {
-        let value = row[index] ? row[index].trim() : "";
-        value = value === "" ? null : value; // Convert empty strings to null
+      columnMappings.forEach(({ header, table, column }) => {
+        const value = row[header] ? row[header].trim() : "";
         if (table && column) {
           if (table === "lawfirm") {
             lawfirmObj[column] = value;
