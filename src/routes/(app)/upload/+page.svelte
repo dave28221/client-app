@@ -58,7 +58,7 @@
 
   async function handleFileUpload() {
     if (!file) {
-      console.log("Please select a file to upload.");
+      alert("Please select a file to upload.");
       return;
     }
 

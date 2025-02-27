@@ -16,9 +16,27 @@ function removeDuplicates(data, uniqueColumn) {
 async function insertData(table, data, uniqueColumn) {
   if (data.length === 0) return;
 
+  // Validate data types
+  const validatedData = data.map(item => {
+    const newItem = {};
+    for (const key in item) {
+      if (item.hasOwnProperty(key)) {
+        // Add more type checking as needed based on your Supabase schema
+        if (typeof item[key] === 'number') {
+          newItem[key] = item[key];
+        } else if (typeof item[key] === 'boolean') {
+          newItem[key] = item[key];
+        } else {
+          newItem[key] = item[key] ? item[key].toString() : null; // Convert to string or null
+        }
+      }
+    }
+    return newItem;
+  });
+
   const { data: supabaseData, error } = await supabase
     .from(table)
-    .upsert(data, { onConflict: [uniqueColumn] });
+    .upsert(validatedData, { onConflict: [uniqueColumn] });
 
   if (error) {
     console.error(`Error inserting data into ${table}:`, error);
