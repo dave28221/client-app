@@ -174,7 +174,7 @@
         if (result.success) {
           alert(result.message);
         } else {
-          alert(result.error || "An error occurred.");
+          alert(result.error);
         }
       } catch (jsonError) {
         console.error("Error parsing JSON:", jsonError);
