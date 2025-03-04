@@ -123,7 +123,7 @@
 
         // Step 2: Check and process each table
         if (table && column) {
-          if (table === "lawfirm") {
+          if (table === "lawfirm" || lawyerscontactprofilesObj.lawfirmname || productsObj.lawfirmname || websitesObj.lawfirmname) {
             lawfirmObj[column] = value;
             if (column === "lawfirmname") {
               lawfirmname = value; // Capture lawfirmname from the lawfirm table
