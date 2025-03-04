@@ -133,9 +133,15 @@
       });
 
       if (lawfirmname) {
-        lawyerscontactprofilesObj.lawfirmname ||= lawfirmname;
-        productsObj.lawfirmname ||= lawfirmname;
-        websitesObj.lawfirmname ||= lawfirmname;
+        if (!lawyerscontactprofilesObj.lawfirmname) {
+          lawyerscontactprofilesObj.lawfirmname = lawfirmname;
+        }
+        if (!productsObj.lawfirmname) {
+          productsObj.lawfirmname = lawfirmname;
+        }
+        if (!websitesObj.lawfirmname) {
+          websitesObj.lawfirmname = lawfirmname;
+        }
       }
 
       if (Object.keys(lawfirmObj).length)
