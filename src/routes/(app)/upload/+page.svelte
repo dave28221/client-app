@@ -123,7 +123,7 @@
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
         if (table && column) {
-          if (table === "lawfirm", "lawyerscontactprofiles", "products", "websites") {	
+          if (table === "lawfirm") {
             lawfirmObj[column] = value;
             if (column === "lawfirmname") {
               lawfirmname = value;
@@ -198,7 +198,6 @@
   }
 </script>
 
-
 <div class="homeBanner">
   <h1 class="leftAlign">Upload CSV</h1>
   <div class="searchAndAdd">
@@ -228,8 +227,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
