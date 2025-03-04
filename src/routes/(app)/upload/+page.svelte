@@ -123,7 +123,7 @@
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
         if (table && column) {
-          if (table === "lawfirm") {
+          if (table === "lawfirm", "lawyerscontactprofiles", "products", "websites") {	
             lawfirmObj[column] = value;
             if (column === "lawfirmname") {
               lawfirmname = value;
