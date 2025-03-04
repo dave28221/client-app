@@ -91,7 +91,7 @@
           console.log("Headers:", headers);
           console.log("Data:", data);
           console.log("Column Mappings:", columnMappings);
-        },
+        }
       );
     };
 
@@ -133,9 +133,9 @@
       });
 
       if (lawfirmname) {
-        lawyerscontactprofilesObj.lawfirmname ||= lawfirmname;
-        productsObj.lawfirmname ||= lawfirmname;
-        websitesObj.lawfirmname ||= lawfirmname;
+        lawyerscontactprofilesObj.lawfirmname = lawfirmname;
+        productsObj.lawfirmname = lawfirmname;
+        websitesObj.lawfirmname = lawfirmname;
       }
 
       if (Object.keys(lawfirmObj).length)
@@ -152,15 +152,15 @@
 
     formattedData.lawfirm = removeDuplicates(
       formattedData.lawfirm,
-      "lawfirmname",
+      "lawfirmname"
     );
     formattedData.lawyerscontactprofiles = removeDuplicates(
       formattedData.lawyerscontactprofiles,
-      "email",
+      "email"
     );
     formattedData.products = removeDuplicates(
       formattedData.products,
-      "lawfirmname",
+      "lawfirmname"
     );
     formattedData.websites = removeDuplicates(formattedData.websites, "url");
 
@@ -168,17 +168,12 @@
       const response = await fetch("/upload", {
         method: "POST",
         body: JSON.stringify(formattedData),
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(
-          "HTTP error! status:",
-          response.status,
-          "Response text:",
-          errorText,
-        );
+        console.error("HTTP error! status:", response.status, "Response text:", errorText);
         return;
       }
 
@@ -193,6 +188,7 @@
     }
   }
 </script>
+
 
 <div class="homeBanner">
   <h1 class="leftAlign">Upload CSV</h1>
