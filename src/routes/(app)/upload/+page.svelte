@@ -123,7 +123,7 @@
 
         // Step 2: Check and process each table
         if (table && column) {
-          if (table === "lawfirm" || lawyerscontactprofilesObj.lawfirmname || productsObj.lawfirmname || websitesObj.lawfirmname) {
+          if (table === "lawfirm") {
             lawfirmObj[column] = value;
             if (column === "lawfirmname") {
               lawfirmname = value; // Capture lawfirmname from the lawfirm table
@@ -142,9 +142,15 @@
       if (lawfirmname) {
         console.log(`Propagating lawfirmname: ${lawfirmname}`);
         // Ensure that lawfirmname is filled in the other tables
-        lawyerscontactprofilesObj.lawfirmname ||= lawfirmname;
-        productsObj.lawfirmname ||= lawfirmname;
-        websitesObj.lawfirmname ||= lawfirmname;
+        if (!lawyerscontactprofilesObj.lawfirmname) {
+          lawyerscontactprofilesObj.lawfirmname = lawfirmname;
+        }
+        if (!productsObj.lawfirmname) {
+          productsObj.lawfirmname = lawfirmname;
+        }
+        if (!websitesObj.lawfirmname) {
+          websitesObj.lawfirmname = lawfirmname;
+        }
       }
 
       // Step 4: Push the data into the formattedData object for each table
