@@ -19,7 +19,7 @@
       "phonenumber",
       "emailaddress",
       "description",
-      "numberofemployeees",
+      "numberofemployees",
     ],
     lawyerscontactprofiles: [
       "firstname",
@@ -98,6 +98,12 @@
     reader.readAsText(file);
   }
 
+  function removeDuplicates(array, key) {
+    return array.filter((obj, index, self) =>
+      index === self.findIndex((t) => t[key] === obj[key])
+    );
+  }
+
   async function handleDataInsert() {
     const formattedData = {
       lawfirm: [],
@@ -133,6 +139,9 @@
       });
 
       if (lawfirmname) {
+        if (!lawfirmObj.lawfirmname) {
+          lawfirmObj.lawfirmname = lawfirmname;
+        }
         lawyerscontactprofilesObj.lawfirmname = lawfirmname;
         productsObj.lawfirmname = lawfirmname;
         websitesObj.lawfirmname = lawfirmname;
