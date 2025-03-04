@@ -137,6 +137,7 @@
 
       // Step 3: Propagate the lawfirmname to all related tables if it's available
       if (lawfirmname) {
+        console.log(`Propagating lawfirmname: ${lawfirmname}`);
         // Ensure that lawfirmname is filled in the other tables
         lawyerscontactprofilesObj.lawfirmname ||= lawfirmname;
         productsObj.lawfirmname ||= lawfirmname;
