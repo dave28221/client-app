@@ -19,7 +19,7 @@
       "phonenumber",
       "emailaddress",
       "description",
-      "numberofemployees",
+      "numberofemployeees",
     ],
     lawyerscontactprofiles: [
       "firstname",
@@ -98,13 +98,6 @@
     reader.readAsText(file);
   }
 
-  function removeDuplicates(array, key) {
-    return array.filter(
-      (obj, index, self) =>
-        index === self.findIndex((t) => t[key] === obj[key]),
-    );
-  }
-
   async function handleDataInsert() {
     const formattedData = {
       lawfirm: [],
@@ -123,30 +116,26 @@
 
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
-
         if (table && column) {
-          if (
-            [
-              "lawfirm",
-              "lawyerscontactprofiles",
-              "products",
-              "websites",
-            ].includes(table)
-          ) {
+          if (table === "lawfirm") {
             lawfirmObj[column] = value;
-          } else if (column === "lawfirmname") {
-            lawfirmname = value;
+            if (column === "lawfirmname") {
+              lawfirmname = value;
+            }
+          } else if (table === "lawyerscontactprofiles") {
+            lawyerscontactprofilesObj[column] = value;
+          } else if (table === "products") {
+            productsObj[column] = value;
+          } else if (table === "websites") {
+            websitesObj[column] = value;
           }
         }
       });
 
       if (lawfirmname) {
-        if (!lawfirmObj.lawfirmname) {
-          lawfirmObj.lawfirmname = lawfirmname;
-        }
-        lawyerscontactprofilesObj.lawfirmname = lawfirmname;
-        productsObj.lawfirmname = lawfirmname;
-        websitesObj.lawfirmname = lawfirmname;
+        lawyerscontactprofilesObj.lawfirmname ||= lawfirmname;
+        productsObj.lawfirmname ||= lawfirmname;
+        websitesObj.lawfirmname ||= lawfirmname;
       }
 
       if (Object.keys(lawfirmObj).length)
@@ -175,11 +164,13 @@
     );
     formattedData.websites = removeDuplicates(formattedData.websites, "url");
 
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(formattedData));
+
     try {
       const response = await fetch("/upload", {
         method: "POST",
-        body: JSON.stringify(formattedData),
-        headers: { "Content-Type": "application/json" },
+        body: formData,
       });
 
       if (!response.ok) {
@@ -193,6 +184,13 @@
         return;
       }
 
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const errorText = await response.text();
+        console.error("Error: Non-JSON response:", errorText);
+        return;
+      }
+
       const result = await response.json();
       if (result.success) {
         console.log(result.message);
@@ -202,6 +200,18 @@
     } catch (error) {
       console.error("Error uploading data:", error);
     }
+  }
+
+  function removeDuplicates(data, uniqueColumn) {
+    const seen = new Set();
+    return data.filter((item) => {
+      const value = item[uniqueColumn];
+      if (seen.has(value)) {
+        return false;
+      }
+      seen.add(value);
+      return true;
+    });
   }
 </script>
 
