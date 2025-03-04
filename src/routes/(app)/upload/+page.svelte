@@ -91,7 +91,7 @@
           console.log("Headers:", headers);
           console.log("Data:", data);
           console.log("Column Mappings:", columnMappings);
-        }
+        },
       );
     };
 
@@ -99,8 +99,9 @@
   }
 
   function removeDuplicates(array, key) {
-    return array.filter((obj, index, self) =>
-      index === self.findIndex((t) => t[key] === obj[key])
+    return array.filter(
+      (obj, index, self) =>
+        index === self.findIndex((t) => t[key] === obj[key]),
     );
   }
 
@@ -122,18 +123,19 @@
 
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
+
         if (table && column) {
-          if (table === "lawfirm") {
+          if (
+            [
+              "lawfirm",
+              "lawyerscontactprofiles",
+              "products",
+              "websites",
+            ].includes(table)
+          ) {
             lawfirmObj[column] = value;
-            if (column === "lawfirmname") {
-              lawfirmname = value;
-            }
-          } else if (table === "lawyerscontactprofiles") {
-            lawyerscontactprofilesObj[column] = value;
-          } else if (table === "products") {
-            productsObj[column] = value;
-          } else if (table === "websites") {
-            websitesObj[column] = value;
+          } else if (column === "lawfirmname") {
+            lawfirmname = value;
           }
         }
       });
@@ -161,15 +163,15 @@
 
     formattedData.lawfirm = removeDuplicates(
       formattedData.lawfirm,
-      "lawfirmname"
+      "lawfirmname",
     );
     formattedData.lawyerscontactprofiles = removeDuplicates(
       formattedData.lawyerscontactprofiles,
-      "email"
+      "email",
     );
     formattedData.products = removeDuplicates(
       formattedData.products,
-      "lawfirmname"
+      "lawfirmname",
     );
     formattedData.websites = removeDuplicates(formattedData.websites, "url");
 
@@ -177,12 +179,17 @@
       const response = await fetch("/upload", {
         method: "POST",
         body: JSON.stringify(formattedData),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("HTTP error! status:", response.status, "Response text:", errorText);
+        console.error(
+          "HTTP error! status:",
+          response.status,
+          "Response text:",
+          errorText,
+        );
         return;
       }
 
@@ -227,7 +234,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
