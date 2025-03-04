@@ -106,6 +106,7 @@
       websites: [],
     };
 
+    // Step 1: Process each row and propagate lawfirmname where necessary
     data.forEach((row) => {
       let lawfirmname = "";
 
@@ -116,11 +117,13 @@
 
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
+        
+        // Step 2: Check and process each table
         if (table && column) {
           if (table === "lawfirm") {
             lawfirmObj[column] = value;
             if (column === "lawfirmname") {
-              lawfirmname = value;
+              lawfirmname = value; // Capture lawfirmname from the lawfirm table
             }
           } else if (table === "lawyerscontactprofiles") {
             lawyerscontactprofilesObj[column] = value;
@@ -132,42 +135,42 @@
         }
       });
 
+      // Step 3: Propagate the lawfirmname to all related tables if it's available
       if (lawfirmname) {
+        // Ensure that lawfirmname is filled in the other tables
         lawyerscontactprofilesObj.lawfirmname ||= lawfirmname;
         productsObj.lawfirmname ||= lawfirmname;
         websitesObj.lawfirmname ||= lawfirmname;
       }
 
-      if (Object.keys(lawfirmObj).length)
+      // Step 4: Push the data into the formattedData object for each table
+      if (Object.keys(lawfirmObj).length) {
         formattedData.lawfirm.push(lawfirmObj);
-      if (Object.keys(lawyerscontactprofilesObj).length)
+      }
+      if (Object.keys(lawyerscontactprofilesObj).length) {
         formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
-      if (Object.keys(productsObj).length)
+      }
+      if (Object.keys(productsObj).length) {
         formattedData.products.push(productsObj);
-      if (Object.keys(websitesObj).length)
+      }
+      if (Object.keys(websitesObj).length) {
         formattedData.websites.push(websitesObj);
+      }
     });
 
     console.log("Formatted Data:", formattedData);
 
-    formattedData.lawfirm = removeDuplicates(
-      formattedData.lawfirm,
-      "lawfirmname",
-    );
-    formattedData.lawyerscontactprofiles = removeDuplicates(
-      formattedData.lawyerscontactprofiles,
-      "email",
-    );
-    formattedData.products = removeDuplicates(
-      formattedData.products,
-      "lawfirmname",
-    );
+    // Step 5: Remove duplicates for the data being sent
+    formattedData.lawfirm = removeDuplicates(formattedData.lawfirm, "lawfirmname");
+    formattedData.lawyerscontactprofiles = removeDuplicates(formattedData.lawyerscontactprofiles, "email");
+    formattedData.products = removeDuplicates(formattedData.products, "lawfirmname");
     formattedData.websites = removeDuplicates(formattedData.websites, "url");
 
     const formData = new FormData();
     formData.append("data", JSON.stringify(formattedData));
 
     try {
+      // Step 6: Send the formatted data to the server
       const response = await fetch("/upload", {
         method: "POST",
         body: formData,
@@ -175,12 +178,7 @@
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(
-          "HTTP error! status:",
-          response.status,
-          "Response text:",
-          errorText,
-        );
+        console.error("HTTP error! status:", response.status, "Response text:", errorText);
         return;
       }
 
@@ -244,8 +242,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
