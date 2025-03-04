@@ -133,15 +133,9 @@
       });
 
       if (lawfirmname) {
-        if (!lawyerscontactprofilesObj.lawfirmname) {
-          lawyerscontactprofilesObj.lawfirmname = lawfirmname;
-        }
-        if (!productsObj.lawfirmname) {
-          productsObj.lawfirmname = lawfirmname;
-        }
-        if (!websitesObj.lawfirmname) {
-          websitesObj.lawfirmname = lawfirmname;
-        }
+        lawyerscontactprofilesObj.lawfirmname ||= lawfirmname;
+        productsObj.lawfirmname ||= lawfirmname;
+        websitesObj.lawfirmname ||= lawfirmname;
       }
 
       if (Object.keys(lawfirmObj).length)
@@ -170,13 +164,11 @@
     );
     formattedData.websites = removeDuplicates(formattedData.websites, "url");
 
-    const formData = new FormData();
-    formData.append("data", JSON.stringify(formattedData));
-
     try {
       const response = await fetch("/upload", {
         method: "POST",
-        body: formData,
+        body: JSON.stringify(formattedData),
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!response.ok) {
@@ -190,13 +182,6 @@
         return;
       }
 
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const errorText = await response.text();
-        console.error("Error: Non-JSON response:", errorText);
-        return;
-      }
-
       const result = await response.json();
       if (result.success) {
         console.log(result.message);
@@ -206,18 +191,6 @@
     } catch (error) {
       console.error("Error uploading data:", error);
     }
-  }
-
-  function removeDuplicates(data, uniqueColumn) {
-    const seen = new Set();
-    return data.filter((item) => {
-      const value = item[uniqueColumn];
-      if (seen.has(value)) {
-        return false;
-      }
-      seen.add(value);
-      return true;
-    });
   }
 </script>
 
@@ -250,7 +223,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
