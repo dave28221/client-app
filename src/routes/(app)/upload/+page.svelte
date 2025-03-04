@@ -107,7 +107,9 @@
     };
 
     // Step 1: Process each row and propagate lawfirmname where necessary
-    data.forEach((row) => {
+    data.forEach((row, rowIndex) => {
+      console.log(`Processing row ${rowIndex}:`, row); // Debugging row content
+
       let lawfirmname = "";
 
       const lawfirmObj = {};
@@ -117,7 +119,8 @@
 
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
-        
+        console.log(`Mapping column: ${header} -> table: ${table}, column: ${column}, value: ${value}`); // Debugging column mapping
+
         // Step 2: Check and process each table
         if (table && column) {
           if (table === "lawfirm") {
@@ -146,15 +149,19 @@
 
       // Step 4: Push the data into the formattedData object for each table
       if (Object.keys(lawfirmObj).length) {
+        console.log("Adding lawfirm object to formatted data:", lawfirmObj);
         formattedData.lawfirm.push(lawfirmObj);
       }
       if (Object.keys(lawyerscontactprofilesObj).length) {
+        console.log("Adding lawyerscontactprofiles object to formatted data:", lawyerscontactprofilesObj);
         formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
       }
       if (Object.keys(productsObj).length) {
+        console.log("Adding products object to formatted data:", productsObj);
         formattedData.products.push(productsObj);
       }
       if (Object.keys(websitesObj).length) {
+        console.log("Adding websites object to formatted data:", websitesObj);
         formattedData.websites.push(websitesObj);
       }
     });
