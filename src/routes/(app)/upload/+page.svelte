@@ -197,6 +197,9 @@
         if (!websitesObj.lawfirmname) {
           websitesObj.lawfirmname = lawfirmname;
         }
+        if (!areasoflawObj.lawfirmname) {
+          areasoflawObj.lawfirmname = lawfirmname;
+        }
       }
 
       // Step 4: Push the data into the formattedData object for each table
