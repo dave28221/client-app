@@ -124,25 +124,20 @@
         ); // Debugging column mapping
 
         // Step 2: Check and process each table
-        if (table === "lawfirm") {
+        if (table === "lawfirm" && column) {
           lawfirmObj[column] = value;
-          if (column === "lawfirmname") {
-            let lawfirmNameHeader = columnMappings.find(
-              (mapping) => mapping.table === "lawfirm" && mapping.column === "lawfirmname",
-            )?.header;
-
-            if (lawfirmNameHeader) {
-              lawfirmname = row[lawfirmNameHeader]?.trim() || "";
-            }
-          }
-        } else if (table === "lawyerscontactprofiles") {
+        } else if (table === "lawyerscontactprofiles" && column) {
           lawyerscontactprofilesObj[column] = value;
-        } else if (table === "products") {
+        } else if (table === "products" && column) {
           productsObj[column] = value;
-        } else if (table === "websites") {
+        } else if (table === "websites" && column) {
           websitesObj[column] = value;
         }
       });
+
+      if (lawfirmNameHeader) {
+        lawfirmname = row[lawfirmNameHeader]?.trim() || "";
+      }
 
       // Step 3: Propagate the lawfirmname to all related tables if it's available
       if (lawfirmname) {
