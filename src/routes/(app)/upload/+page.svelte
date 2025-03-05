@@ -19,7 +19,7 @@
       "phonenumber",
       "emailaddress",
       "description",
-      "numberofemployees",
+      "numberofemployeees",
     ],
     lawyerscontactprofiles: [
       "firstname",
@@ -54,6 +54,7 @@
 
   function handleFileChange(event) {
     file = event.target.files[0];
+    console.log("File selected:", file);
   }
 
   async function handleFileUpload() {
@@ -86,6 +87,10 @@
             table: "",
             column: "",
           }));
+
+          console.log("Headers:", headers);
+          console.log("Data:", data);
+          console.log("Column Mappings:", columnMappings);
         },
       );
     };
@@ -101,72 +106,175 @@
       websites: [],
     };
 
-    data.forEach((row) => {
+    // Step 1: Process each row and propagate lawfirmname where necessary
+    data.forEach((row, rowIndex) => {
+      console.log(`Processing row ${rowIndex}:`, row); // Debugging row content
+
       let lawfirmname = "";
-      const rowData = {
-        lawfirm: {},
-        lawyerscontactprofiles: {},
-        products: {},
-        websites: {},
-      };
+
+      const lawfirmObj = {};
+      const lawyerscontactprofilesObj = {};
+      const productsObj = {};
+      const websitesObj = {};
 
       columnMappings.forEach(({ header, table, column }) => {
+        const value = row[header] ? row[header].trim() : "";
+        console.log(`Mapping column: ${header} -> table: ${table}, column: ${column}, value: ${value}`); // Debugging column mapping
+
+        // Step 2: Check and process each table
         if (table && column) {
-          rowData[table][column] = row[header]?.trim() || "";
-          if (column === "lawfirmname") {
-            lawfirmname = row[header]?.trim() || "";
+          if (table === "lawfirm") {
+            lawfirmObj[column] = value;
+            if (column === "lawfirmname") {
+              lawfirmname = value; // Capture lawfirmname from the lawfirm table
+            }
+          } else if (table === "lawyerscontactprofiles") {
+            lawyerscontactprofilesObj[column] = value;
+          } else if (table === "products") {
+            productsObj[column] = value;
+          } else if (table === "websites") {
+            websitesObj[column] = value;
           }
         }
       });
 
+      // Step 3: Propagate the lawfirmname to all related tables if it's available
       if (lawfirmname) {
-        rowData.lawyerscontactprofiles.lawfirmname ||= lawfirmname;
-        rowData.products.lawfirmname ||= lawfirmname;
-        rowData.websites.lawfirmname ||= lawfirmname;
+        console.log(`Propagating lawfirmname: ${lawfirmname}`);
+        // Ensure that lawfirmname is filled in the other tables
+        if (!lawyerscontactprofilesObj.lawfirmname) {
+          lawyerscontactprofilesObj.lawfirmname = lawfirmname;
+        }
+        if (!productsObj.lawfirmname) {
+          productsObj.lawfirmname = lawfirmname;
+        }
+        if (!websitesObj.lawfirmname) {
+          websitesObj.lawfirmname = lawfirmname;
+        }
       }
 
-      Object.keys(rowData).forEach((table) => {
-        if (Object.keys(rowData[table]).length) {
-          formattedData[table].push(rowData[table]);
-        }
-      });
+      // Step 4: Push the data into the formattedData object for each table
+      if (Object.keys(lawfirmObj).length && lawfirmname) {
+        console.log("Adding lawfirm object to formatted data:", lawfirmObj);
+        formattedData.lawfirm.push(lawfirmObj);
+      }
+      if (Object.keys(lawyerscontactprofilesObj).length) {
+        console.log("Adding lawyerscontactprofiles object to formatted data:", lawyerscontactprofilesObj);
+        formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
+      }
+      if (Object.keys(productsObj).length) {
+        console.log("Adding products object to formatted data:", productsObj);
+        formattedData.products.push(productsObj);
+      }
+      if (Object.keys(websitesObj).length) {
+        console.log("Adding websites object to formatted data:", websitesObj);
+        formattedData.websites.push(websitesObj);
+      }
     });
 
-    console.log("Formatted Data Sent to Server:", formattedData);
+    console.log("Formatted Data:", formattedData);
+
+    // Step 5: Remove duplicates for the data being sent
+    formattedData.lawfirm = removeDuplicates(formattedData.lawfirm, "lawfirmname");
+    formattedData.lawyerscontactprofiles = removeDuplicates(formattedData.lawyerscontactprofiles, "email");
+    formattedData.products = removeDuplicates(formattedData.products, "lawfirmname");
+    formattedData.websites = removeDuplicates(formattedData.websites, "url");
+
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(formattedData));
+
+    try {
+      // Step 6: Send the formatted data to the server
+      // Function to get a cookie by name
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+      }
+
+      // Get the access token from the cookie
+      const accessToken = getCookie('supabase-auth-token');
+
+      const response = await fetch("/upload", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("HTTP error! status:", response.status, "Response text:", errorText);
+        return;
+      }
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const errorText = await response.text();
+        console.error("Error: Non-JSON response:", errorText);
+        return;
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        console.log(result.message);
+      } else {
+        console.error(result.error);
+      }
+    } catch (error) {
+      console.error("Error uploading data:", error);
+    }
   }
+
+  function removeDuplicates(data, uniqueColumn) {
+    const seen = new Set();
+    return data.filter((item) => {
+      const value = item[uniqueColumn];
+      if (seen.has(value)) {
+        return false;
+      }
+      seen.add(value);
+      return true;
+    });
+  }
+
+
+
 </script>
 
-<div>
-  <h1>Upload CSV</h1>
-  <input type="file" accept=".csv" on:change={handleFileChange} />
-  <button on:click={handleFileUpload}>Import CSV</button>
-
-  {#if headers.length}
-    <div>
-      {#each columnMappings as mapping, index}
-        <div>
-          <label>{mapping.header}</label>
-          <select bind:value={mapping.table}>
-            <option value="">Select table</option>
-            {#each Object.keys(tableColumns) as table}
-              <option value={table}>{table}</option>
-            {/each}
-          </select>
-          {#if mapping.table}
-            <select bind:value={mapping.column}>
-              <option value="">Select column</option>
-              {#each tableColumns[mapping.table] as column}
-                <option value={column}>{column}</option>
-              {/each}
-            </select>
-          {/if}
-        </div>
-      {/each}
-      <button on:click={handleDataInsert}>Insert Data</button>
-    </div>
-  {/if}
+<div class="homeBanner">
+  <h1 class="leftAlign">Upload CSV</h1>
+  <div class="searchAndAdd">
+    <input type="file" accept=".csv" on:change={handleFileChange} />
+    <button on:click={handleFileUpload}>Import CSV</button>
+  </div>
 </div>
 
+{#if headers.length}
+  <div class="mappingSection">
+    {#each columnMappings as mapping, index}
+      <div class="mappingRow">
+        <label for="table-{index}">{mapping.header}</label>
+        <select id="table-{index}" bind:value={mapping.table}>
+          <option value="">Select table</option>
+          {#each Object.keys(tableColumns) as table}
+            <option value={table}>{table}</option>
+          {/each}
+        </select>
+        {#if mapping.table}
+          <select id="column-{index}" bind:value={mapping.column}>
+            <option value="">Select column</option>
+            {#each tableColumns[mapping.table] as column}
+              <option value={column}>{column}</option>
+            {/each}
+          </select>
+        {/if}
+      </div>
+    {/each}
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+  </div>
+{/if}
 
 <style>
   .searchAndAdd {
