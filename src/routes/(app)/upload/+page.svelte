@@ -107,15 +107,23 @@
     };
 
     // Step 1: Process each row and propagate lawfirmname where necessary
-    data.forEach((row, rowIndex) => {
+ data.forEach((row, rowIndex) => {
       console.log(`Processing row ${rowIndex}:`, row); // Debugging row content
 
-      let lawfirmname = row["lawfirmname"]?.trim() || ""; // Capture lawfirmname
+      let lawfirmname = "";
 
       const lawfirmObj = {};
       const lawyerscontactprofilesObj = {};
       const productsObj = {};
       const websitesObj = {};
+
+      let lawfirmNameHeader = columnMappings.find(
+        (mapping) => mapping.table === "lawfirm" && mapping.column === "lawfirmname",
+      )?.header;
+
+      if (lawfirmNameHeader) {
+        lawfirmname = row[lawfirmNameHeader]?.trim() || "";
+      }
 
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
