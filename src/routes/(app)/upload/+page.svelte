@@ -142,20 +142,39 @@
 
       // Step 3: Propagate the lawfirmname to all related tables if it's available
       if (lawfirmname) {
-        lawyerscontactprofilesObj.lawfirmname ??= lawfirmname;
-        productsObj.lawfirmname ??= lawfirmname;
-        websitesObj.lawfirmname ??= lawfirmname;
+        console.log(`Propagating lawfirmname: ${lawfirmname}`);
+        // Ensure that lawfirmname is filled in the other tables
+        if (!lawyerscontactprofilesObj.lawfirmname) {
+          lawyerscontactprofilesObj.lawfirmname = lawfirmname;
+        }
+        if (!productsObj.lawfirmname) {
+          productsObj.lawfirmname = lawfirmname;
+        }
+        if (!websitesObj.lawfirmname) {
+          websitesObj.lawfirmname = lawfirmname;
+        }
       }
 
       // Step 4: Push the data into the formattedData object for each table
-      if (Object.keys(lawfirmObj).length)
+      if (Object.keys(lawfirmObj).length && lawfirmname) {
+        console.log("Adding lawfirm object to formatted data:", lawfirmObj);
         formattedData.lawfirm.push(lawfirmObj);
-      if (Object.keys(lawyerscontactprofilesObj).length)
+      }
+      if (Object.keys(lawyerscontactprofilesObj).length) {
+        console.log(
+          "Adding lawyerscontactprofiles object to formatted data:",
+          lawyerscontactprofilesObj,
+        );
         formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
-      if (Object.keys(productsObj).length)
+      }
+      if (Object.keys(productsObj).length) {
+        console.log("Adding products object to formatted data:", productsObj);
         formattedData.products.push(productsObj);
-      if (Object.keys(websitesObj).length)
+      }
+      if (Object.keys(websitesObj).length) {
+        console.log("Adding websites object to formatted data:", websitesObj);
         formattedData.websites.push(websitesObj);
+      }
     });
 
     console.log("Formatted Data:", formattedData);
@@ -177,7 +196,6 @@
 
     const formData = new FormData();
     formData.append("data", JSON.stringify(formattedData));
-    console.log("Final Formatted Data:", JSON.stringify(formattedData, null, 2));
 
     try {
       // Step 6: Send the formatted data to the server
