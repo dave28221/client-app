@@ -49,46 +49,7 @@
       "advertising",
       "lawfirmname",
     ],
-    websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
-    areasoflaw: [
-      "areaoflawid",
-      "agedcareandretirement",
-      "agribusiness",
-      "artsentertainmentandsports",
-      "bankingandfinance",
-      "carbonandcleanenergy",
-      "charitiesandnotforprofit",
-      "commercial",
-      "compensation",
-      "competitionandconsumer",
-      "construction",
-      "corporateadvisory",
-      "crime",
-      "disputeresolution",
-      "employmentandsafety",
-      "energyandresources",
-      "familylaw",
-      "franchising",
-      "governmentandstateownedenterprises",
-      "informationtechnology",
-      "infrastructure",
-      "insolvency",
-      "intellectualproperty",
-      "licensingandhospitality",
-      "lifesciences",
-      "litigation",
-      "migration",
-      "nativetitle",
-      "planningandenvironment",
-      "privateclients",
-      "productrisk",
-      "property",
-      "schoolscollegesanduniversities",
-      "superannuation",
-      "taxationregulationandcompliance",
-      "willsandestateplanning",
-      "workoutsandrestructures",
-    ],
+    websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"]
   };
 
   function handleFileChange(event) {
@@ -156,7 +117,7 @@
       const lawyerscontactprofilesObj = {};
       const productsObj = {};
       const websitesObj = {};
-      const areasoflawObj = {};
+    
 
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
@@ -179,8 +140,6 @@
           productsObj[column] = value;
         } else if (table === "websites") {
           websitesObj[column] = value;
-        } else if (table === "areasoflaw") {
-          areasoflawObj[column] = value;
         }
       });
 
@@ -199,7 +158,6 @@
         }
       }
 
-      // Step 4: Push the data into the formattedData object for each table
       if (Object.keys(lawfirmObj).length && lawfirmname) {
         console.log("Adding lawfirm object to formatted data:", lawfirmObj);
         formattedData.lawfirm.push(lawfirmObj);
@@ -216,10 +174,7 @@
         console.log("Adding websites object to formatted data:", websitesObj);
         formattedData.websites.push(websitesObj);
       }
-      if (Object.keys(areasoflawObj).length) {
-        console.log("Adding areasoflaw object to formatted data:", areasoflawObj);
-        formattedData.areasoflaw.push(areasoflawObj);
-      }
+
     });
 
     console.log("Formatted Data:", formattedData);
@@ -229,21 +184,11 @@
     formattedData.lawyerscontactprofiles = removeDuplicates(formattedData.lawyerscontactprofiles, "email");
     formattedData.products = removeDuplicates(formattedData.products, "lawfirmname");
     formattedData.websites = removeDuplicates(formattedData.websites, "url");
-    formattedData.areasoflaw = removeDuplicates(formattedData.areasoflaw, "areaoflawid");
 
     const formData = new FormData();
     formData.append("data", JSON.stringify(formattedData));
 
     try {
-
-      function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-      }
-
-      // Get the access token from the cookie
-      const accessToken = getCookie('supabase-auth-token');
 
       const response = await fetch("/upload", {
         method: "POST",
