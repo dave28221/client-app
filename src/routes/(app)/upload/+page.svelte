@@ -107,23 +107,15 @@
     };
 
     // Step 1: Process each row and propagate lawfirmname where necessary
- data.forEach((row, rowIndex) => {
+    data.forEach((row, rowIndex) => {
       console.log(`Processing row ${rowIndex}:`, row); // Debugging row content
-
-      let lawfirmname = "";
 
       const lawfirmObj = {};
       const lawyerscontactprofilesObj = {};
       const productsObj = {};
       const websitesObj = {};
 
-      let lawfirmNameHeader = columnMappings.find(
-        (mapping) => mapping.table === "lawfirm" && mapping.column === "lawfirmname",
-      )?.header;
-
-      if (lawfirmNameHeader) {
-        lawfirmname = row[lawfirmNameHeader]?.trim() || "";
-      }
+      let lawfirmname = "";
 
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
@@ -132,19 +124,23 @@
         ); // Debugging column mapping
 
         // Step 2: Check and process each table
-        if (table && column) {
-          if (table === "lawfirm") {
-            lawfirmObj[column] = value;
-            if (column === "lawfirmname") {
-              lawfirmname = value; // Capture lawfirmname from the lawfirm table
+        if (table === "lawfirm") {
+          lawfirmObj[column] = value;
+          if (column === "lawfirmname") {
+            let lawfirmNameHeader = columnMappings.find(
+              (mapping) => mapping.table === "lawfirm" && mapping.column === "lawfirmname",
+            )?.header;
+
+            if (lawfirmNameHeader) {
+              lawfirmname = row[lawfirmNameHeader]?.trim() || "";
             }
-          } else if (table === "lawyerscontactprofiles") {
-            lawyerscontactprofilesObj[column] = value;
-          } else if (table === "products") {
-            productsObj[column] = value;
-          } else if (table === "websites") {
-            websitesObj[column] = value;
           }
+        } else if (table === "lawyerscontactprofiles") {
+          lawyerscontactprofilesObj[column] = value;
+        } else if (table === "products") {
+          productsObj[column] = value;
+        } else if (table === "websites") {
+          websitesObj[column] = value;
         }
       });
 
@@ -291,8 +287,8 @@
             <option value="">Select column</option>
             {#each tableColumns[mapping.table] as column}
               <option value={column}>{column}</option>
-            {/each}
-          </select>
+          {/each}
+        </select>
         {/if}
       </div>
     {/each}
