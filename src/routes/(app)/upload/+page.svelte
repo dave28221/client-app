@@ -154,26 +154,21 @@
       }
 
       // Step 4: Push the data into the formattedData object for each table
-      if (Object.keys(lawfirmObj).length) {
+      if (Object.keys(lawfirmObj).length && lawfirmname) {
         console.log("Adding lawfirm object to formatted data:", lawfirmObj);
         formattedData.lawfirm.push(lawfirmObj);
       }
-      if (lawfirmname) {
-        if (Object.keys(lawyerscontactprofilesObj).length) {
-          console.log("Adding lawyerscontactprofiles object to formatted data:", lawyerscontactprofilesObj);
-          formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
-          lawyerscontactprofilesObj.lawfirmname = lawfirmname;
-        }
-        if (Object.keys(productsObj).length) {
-          console.log("Adding products object to formatted data:", productsObj);
-          formattedData.products.push(productsObj);
-          productsObj.lawfirmname = lawfirmname;
-        }
-        if (Object.keys(websitesObj).length) {
-          console.log("Adding websites object to formatted data:", websitesObj);
-          formattedData.websites.push(websitesObj);
-          websitesObj.lawfirmname = lawfirmname;
-        }
+      if (Object.keys(lawyerscontactprofilesObj).length) {
+        console.log("Adding lawyerscontactprofiles object to formatted data:", lawyerscontactprofilesObj);
+        formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
+      }
+      if (Object.keys(productsObj).length) {
+        console.log("Adding products object to formatted data:", productsObj);
+        formattedData.products.push(productsObj);
+      }
+      if (Object.keys(websitesObj).length) {
+        console.log("Adding websites object to formatted data:", websitesObj);
+        formattedData.websites.push(websitesObj);
       }
     });
 

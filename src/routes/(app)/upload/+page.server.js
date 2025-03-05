@@ -40,12 +40,7 @@ async function insertData(table, data, uniqueColumn) {
 
   if (error) {
     console.error(`Error inserting data into ${table}:`, error);
-    // Check if the error is a foreign key violation
-    if (error.code === '23503') {
-      console.error(`Foreign key violation occurred while inserting data into ${table}. Skipping insertion for this row.`);
-    } else {
-      throw new Error(`Error inserting data into ${table}`);
-    }
+    throw new Error(`Error inserting data into ${table}`);
   } else {
     console.log(`Data inserted successfully into ${table}:`, supabaseData);
   }
