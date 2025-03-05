@@ -226,6 +226,95 @@
     });
   }
 
+/*async function handleDataInsert() {
+  const formattedData = {
+    lawfirm: [],
+    lawyerscontactprofiles: [],
+    products: [],
+    websites: [],
+  };
+
+  data.forEach((row, rowIndex) => {
+    let lawfirmname = "";
+
+    const lawfirmObj = {};
+    const lawyerscontactprofilesObj = {};
+    const productsObj = {};
+    const websitesObj = {};
+
+    // First pass: Collect data and find lawfirmname
+    columnMappings.forEach(({ header, table, column }) => {
+      const value = row[header] ? row[header].trim() : "";
+
+      if (table && column) {
+        if (column === "lawfirmname" && value) {
+          lawfirmname = value; // Capture from any table
+        }
+
+        if (table === "lawfirm") {
+          lawfirmObj[column] = value;
+        } else if (table === "lawyerscontactprofiles") {
+          lawyerscontactprofilesObj[column] = value;
+        } else if (table === "products") {
+          productsObj[column] = value;
+        } else if (table === "websites") {
+          websitesObj[column] = value;
+        }
+      }
+    });
+
+    // Second pass: Ensure lawfirmname is present in all tables
+    if (lawfirmname) {
+      lawyerscontactprofilesObj.lawfirmname ||= lawfirmname;
+      productsObj.lawfirmname ||= lawfirmname;
+      websitesObj.lawfirmname ||= lawfirmname;
+    }
+
+    // Store objects in their respective categories
+    if (Object.keys(lawfirmObj).length) formattedData.lawfirm.push(lawfirmObj);
+    if (Object.keys(lawyerscontactprofilesObj).length) formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
+    if (Object.keys(productsObj).length) formattedData.products.push(productsObj);
+    if (Object.keys(websitesObj).length) formattedData.websites.push(websitesObj);
+  });
+
+  console.log("Formatted Data:", formattedData);
+
+  formattedData.lawfirm = removeDuplicates(formattedData.lawfirm, "lawfirmname");
+  formattedData.lawyerscontactprofiles = removeDuplicates(formattedData.lawyerscontactprofiles, "email");
+  formattedData.products = removeDuplicates(formattedData.products, "lawfirmname");
+  formattedData.websites = removeDuplicates(formattedData.websites, "url");
+
+  const formData = new FormData();
+  formData.append("data", JSON.stringify(formattedData));
+
+  try {
+    const response = await fetch("/upload", { method: "POST", body: formData });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("HTTP error! status:", response.status, "Response text:", errorText);
+      return;
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const errorText = await response.text();
+      console.error("Error: Non-JSON response:", errorText);
+      return;
+    }
+
+    const result = await response.json();
+    if (result.success) {
+      console.log(result.message);
+    } else {
+      console.error(result.error);
+    }
+  } catch (error) {
+    console.error("Error uploading data:", error);
+  }
+}
+*/
+
 
 </script>
 
