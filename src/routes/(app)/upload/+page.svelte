@@ -110,23 +110,18 @@
     data.forEach((row, rowIndex) => {
       console.log(`Processing row ${rowIndex}:`, row); // Debugging row content
 
-<<<<<<< HEAD
-=======
       let lawfirmname = "";
 
->>>>>>> parent of 17cea07 (test again)
       const lawfirmObj = {};
       const lawyerscontactprofilesObj = {};
       const productsObj = {};
       const websitesObj = {};
 
-      let lawfirmname = "";
-
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
         console.log(`Mapping column: ${header} -> table: ${table}, column: ${column}, value: ${value}`); // Debugging column mapping
 
-       // Step 2: Check and process each table
+        // Step 2: Check and process each table
         if (table === "lawfirm") {
           if (column === "lawfirmname") {
             let lawfirmNameHeader = columnMappings.find(
@@ -162,23 +157,12 @@
       }
 
       // Step 4: Push the data into the formattedData object for each table
-<<<<<<< HEAD
-      if (Object.keys(lawfirmObj).length) {
-=======
       if (Object.keys(lawfirmObj).length && lawfirmname) {
->>>>>>> parent of 17cea07 (test again)
         console.log("Adding lawfirm object to formatted data:", lawfirmObj);
         formattedData.lawfirm.push(lawfirmObj);
       }
       if (Object.keys(lawyerscontactprofilesObj).length) {
-<<<<<<< HEAD
-        console.log(
-          "Adding lawyerscontactprofiles object to formatted data:",
-          lawyerscontactprofilesObj,
-        );
-=======
         console.log("Adding lawyerscontactprofiles object to formatted data:", lawyerscontactprofilesObj);
->>>>>>> parent of 17cea07 (test again)
         formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
       }
       if (Object.keys(productsObj).length) {
@@ -193,25 +177,10 @@
 
     console.log("Formatted Data:", formattedData);
 
-<<<<<<< HEAD
-    formattedData.lawfirm = removeDuplicates(
-      formattedData.lawfirm,
-      "lawfirmname",
-    );
-    formattedData.lawyerscontactprofiles = removeDuplicates(
-      formattedData.lawyerscontactprofiles,
-      "email",
-    );
-    formattedData.products = removeDuplicates(
-      formattedData.products,
-      "lawfirmname",
-    );
-=======
     // Step 5: Remove duplicates for the data being sent
     formattedData.lawfirm = removeDuplicates(formattedData.lawfirm, "lawfirmname");
     formattedData.lawyerscontactprofiles = removeDuplicates(formattedData.lawyerscontactprofiles, "email");
     formattedData.products = removeDuplicates(formattedData.products, "lawfirmname");
->>>>>>> parent of 17cea07 (test again)
     formattedData.websites = removeDuplicates(formattedData.websites, "url");
 
     const formData = new FormData();
@@ -271,9 +240,6 @@
       return true;
     });
   }
-
-
-
 </script>
 
 <div class="homeBanner">
@@ -389,4 +355,4 @@
     margin-left: 5%;
     margin-bottom: 50px;
   }
-  </style>
+</style>
