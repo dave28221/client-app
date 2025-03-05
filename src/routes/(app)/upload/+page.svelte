@@ -184,7 +184,7 @@
     console.log("Formatted Data:", formattedData);
 
     // Step 5: Remove duplicates for the data being sent
-    formattedData.lawfirm = removeDuplicates(formattedData.lawfirm, "lawfirmname");
+    //formattedData.lawfirm = removeDuplicates(formattedData.lawfirm, "lawfirmname");
     formattedData.lawyerscontactprofiles = removeDuplicates(formattedData.lawyerscontactprofiles, "email");
     formattedData.products = removeDuplicates(formattedData.products, "lawfirmname");
     formattedData.websites = removeDuplicates(formattedData.websites, "url");

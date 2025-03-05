@@ -69,10 +69,11 @@ export const actions = {
       }
 
       // Remove duplicates
-      formattedData.lawfirm = removeDuplicates(
+      /*formattedData.lawfirm = removeDuplicates(
         formattedData.lawfirm,
         "lawfirmname",
       );
+      */
       formattedData.lawyerscontactprofiles = removeDuplicates(
         formattedData.lawyerscontactprofiles,
         "email",
