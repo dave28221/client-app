@@ -141,20 +141,6 @@
         }
       });
 
-      // Step 3: Propagate the lawfirmname to all related tables if it's available
-      if (lawfirmname) {
-        console.log(`Propagating lawfirmname: ${lawfirmname}`);
-        // Ensure that lawfirmname is filled in the other tables
-        if (!lawyerscontactprofilesObj.lawfirmname) {
-          lawyerscontactprofilesObj.lawfirmname = lawfirmname;
-        }
-        if (!productsObj.lawfirmname) {
-          productsObj.lawfirmname = lawfirmname;
-        }
-        if (!websitesObj.lawfirmname) {
-          websitesObj.lawfirmname = lawfirmname;
-        }
-      }
 
       // Step 4: Push the data into the formattedData object for each table
       if (Object.keys(lawfirmObj).length && lawfirmname) {
@@ -178,13 +164,7 @@
     console.log("Formatted Data:", formattedData);
 
     // Step 5: Remove duplicates for the data being sent
-    formattedData.lawfirm = removeDuplicates(formattedData.lawfirm, "lawfirmname");
-    formattedData.lawyerscontactprofiles = removeDuplicates(formattedData.lawyerscontactprofiles, "email");
-    formattedData.products = removeDuplicates(formattedData.products, "lawfirmname");
-    formattedData.websites = removeDuplicates(formattedData.websites, "url");
-
-    const formData = new FormData();
-    formData.append("data", JSON.stringify(formattedData));
+ 
 
     try {
 
