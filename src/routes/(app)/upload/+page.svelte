@@ -158,24 +158,20 @@
         console.log("Adding lawfirm object to formatted data:", lawfirmObj);
         formattedData.lawfirm.push(lawfirmObj);
       }
-      if (Object.keys(lawyerscontactprofilesObj).length) {
-        console.log("Adding lawyerscontactprofiles object to formatted data:", lawyerscontactprofilesObj);
-        formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
-        if (lawfirmname) {
+      if (lawfirmname) {
+        if (Object.keys(lawyerscontactprofilesObj).length) {
+          console.log("Adding lawyerscontactprofiles object to formatted data:", lawyerscontactprofilesObj);
+          formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
           lawyerscontactprofilesObj.lawfirmname = lawfirmname;
         }
-      }
-      if (Object.keys(productsObj).length) {
-        console.log("Adding products object to formatted data:", productsObj);
-        formattedData.products.push(productsObj);
-         if (lawfirmname) {
+        if (Object.keys(productsObj).length) {
+          console.log("Adding products object to formatted data:", productsObj);
+          formattedData.products.push(productsObj);
           productsObj.lawfirmname = lawfirmname;
         }
-      }
-      if (Object.keys(websitesObj).length) {
-        console.log("Adding websites object to formatted data:", websitesObj);
-        formattedData.websites.push(websitesObj);
-         if (lawfirmname) {
+        if (Object.keys(websitesObj).length) {
+          console.log("Adding websites object to formatted data:", websitesObj);
+          formattedData.websites.push(websitesObj);
           websitesObj.lawfirmname = lawfirmname;
         }
       }
