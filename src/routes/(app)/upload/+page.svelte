@@ -158,31 +158,6 @@
       const websitesObj = {};
       const areasoflawObj = {};
 
-      columnMappings.forEach(({ header, table, column }) => {
-        const value = row[header] ? row[header].trim() : "";
-        console.log(`Mapping column: ${header} -> table: ${table}, column: ${column}, value: ${value}`); // Debugging column mapping
-
-        // Step 2: Check and process each table
-        if (table === "lawfirm") {
-          if (column === "lawfirmname") {
-            let lawfirmNameHeader = columnMappings.find(
-              (mapping) => mapping.table === "lawfirm" && mapping.column === "lawfirmname"
-            )?.header;
-            if (lawfirmNameHeader) {
-              lawfirmname = row[lawfirmNameHeader]?.trim() || "";
-            }
-          }
-          lawfirmObj[column] = value;
-        } else if (table === "lawyerscontactprofiles") {
-          lawyerscontactprofilesObj[column] = value;
-        } else if (table === "products") {
-          productsObj[column] = value;
-        } else if (table === "websites") {
-          websitesObj[column] = value;
-        } else if (table === "areasoflaw") {
-          areasoflawObj[column] = value;
-        }
-      });
 
       // Step 3: Propagate the lawfirmname to all related tables if it's available
       if (lawfirmname) {
