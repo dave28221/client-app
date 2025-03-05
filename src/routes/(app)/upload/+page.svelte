@@ -123,21 +123,25 @@
           `Mapping column: ${header} -> table: ${table}, column: ${column}, value: ${value}`,
         ); // Debugging column mapping
 
-        // Step 2: Check and process each table
-        if (table === "lawfirm" && column) {
+       // Step 2: Check and process each table
+        if (table === "lawfirm") {
+          if (column === "lawfirmname") {
+            let lawfirmNameHeader = columnMappings.find(
+              (mapping) => mapping.table === "lawfirm" && mapping.column === "lawfirmname"
+            )?.header;
+            if (lawfirmNameHeader) {
+              lawfirmname = row[lawfirmNameHeader]?.trim() || "";
+            }
+          }
           lawfirmObj[column] = value;
-        } else if (table === "lawyerscontactprofiles" && column) {
+        } else if (table === "lawyerscontactprofiles") {
           lawyerscontactprofilesObj[column] = value;
-        } else if (table === "products" && column) {
+        } else if (table === "products") {
           productsObj[column] = value;
-        } else if (table === "websites" && column) {
+        } else if (table === "websites") {
           websitesObj[column] = value;
         }
       });
-
-      if (lawfirmNameHeader) {
-        lawfirmname = row[lawfirmNameHeader]?.trim() || "";
-      }
 
       // Step 3: Propagate the lawfirmname to all related tables if it's available
       if (lawfirmname) {
@@ -155,7 +159,7 @@
       }
 
       // Step 4: Push the data into the formattedData object for each table
-      if (Object.keys(lawfirmObj).length && lawfirmname) {
+      if (Object.keys(lawfirmObj).length) {
         console.log("Adding lawfirm object to formatted data:", lawfirmObj);
         formattedData.lawfirm.push(lawfirmObj);
       }
