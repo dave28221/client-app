@@ -75,25 +75,25 @@ export const actions = {
       );
       formattedData.lawyerscontactprofiles = removeDuplicates(
         formattedData.lawyerscontactprofiles,
-        "email",
+        "lawyerid",
       );
       formattedData.products = removeDuplicates(
         formattedData.products,
-        "lawfirmname",
+        "productid",
       );
       formattedData.websites = removeDuplicates(
         formattedData.websites,
-        "url",
+        "websiteid",
       );
 
       await insertData("lawfirm", formattedData.lawfirm, "lawfirmname");
       await insertData(
         "lawyerscontactprofiles",
         formattedData.lawyerscontactprofiles,
-        "email",
+        "lawyerid",
       );
-      await insertData("products", formattedData.products, "lawfirmname");
-      await insertData("websites", formattedData.websites, "url");
+      await insertData("products", formattedData.products, "productid");
+      await insertData("websites", formattedData.websites, "websiteid");
 
       return { success: true, message: 'CSV imported successfully' };
     } catch (error) {

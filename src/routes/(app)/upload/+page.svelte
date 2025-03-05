@@ -225,6 +225,8 @@
       return true;
     });
   }
+
+
 </script>
 
 <div class="homeBanner">
