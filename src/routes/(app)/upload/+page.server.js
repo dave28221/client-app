@@ -1,7 +1,17 @@
 import { fail } from '@sveltejs/kit';
 import { supabase } from '../../../lib/supabaseClient';
 
-
+function removeDuplicates(data, uniqueColumn) {
+  const seen = new Set();
+  return data.filter((item) => {
+    const value = item[uniqueColumn];
+    if (seen.has(value)) {
+      return false;
+    }
+    seen.add(value);
+    return true;
+  });
+}
 
 async function insertData(table, data, uniqueColumn) {
   if (data.length === 0) return;
@@ -53,8 +63,7 @@ export const actions = {
         !Array.isArray(formattedData?.lawfirm) ||
         !Array.isArray(formattedData?.lawyerscontactprofiles) ||
         !Array.isArray(formattedData?.products) ||
-        !Array.isArray(formattedData?.websites) ||
-        !Array.isArray(formattedData?.areasoflaw)
+        !Array.isArray(formattedData?.websites)
       ) {
         return fail(400, { error: 'Invalid data format' });
       }
@@ -76,10 +85,6 @@ export const actions = {
         formattedData.websites,
         "url",
       );
-      formattedData.areasoflaw = removeDuplicates(
-        formattedData.areasoflaw,
-        "areaoflawid",
-      );
 
       await insertData("lawfirm", formattedData.lawfirm, "lawfirmname");
       await insertData(
@@ -89,7 +94,6 @@ export const actions = {
       );
       await insertData("products", formattedData.products, "lawfirmname");
       await insertData("websites", formattedData.websites, "url");
-      await insertData("areasoflaw", formattedData.areasoflaw, "areaoflawid");
 
       return { success: true, message: 'CSV imported successfully' };
     } catch (error) {

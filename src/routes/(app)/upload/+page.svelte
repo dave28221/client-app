@@ -104,7 +104,6 @@
       lawyerscontactprofiles: [],
       products: [],
       websites: [],
-      areasoflaw: [],
     };
 
     // Step 1: Process each row and propagate lawfirmname where necessary
@@ -117,7 +116,6 @@
       const lawyerscontactprofilesObj = {};
       const productsObj = {};
       const websitesObj = {};
-    
 
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
@@ -158,6 +156,7 @@
         }
       }
 
+      // Step 4: Push the data into the formattedData object for each table
       if (Object.keys(lawfirmObj).length && lawfirmname) {
         console.log("Adding lawfirm object to formatted data:", lawfirmObj);
         formattedData.lawfirm.push(lawfirmObj);
@@ -174,7 +173,6 @@
         console.log("Adding websites object to formatted data:", websitesObj);
         formattedData.websites.push(websitesObj);
       }
-
     });
 
     console.log("Formatted Data:", formattedData);
@@ -189,6 +187,15 @@
     formData.append("data", JSON.stringify(formattedData));
 
     try {
+
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+      }
+
+      // Get the access token from the cookie
+      const accessToken = getCookie('supabase-auth-token');
 
       const response = await fetch("/upload", {
         method: "POST",
