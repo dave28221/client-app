@@ -63,7 +63,8 @@ export const actions = {
         !Array.isArray(formattedData?.lawfirm) ||
         !Array.isArray(formattedData?.lawyerscontactprofiles) ||
         !Array.isArray(formattedData?.products) ||
-        !Array.isArray(formattedData?.websites)
+        !Array.isArray(formattedData?.websites) ||
+        !Array.isArray(formattedData?.areasoflaw)
       ) {
         return fail(400, { error: 'Invalid data format' });
       }
@@ -85,6 +86,10 @@ export const actions = {
         formattedData.websites,
         "url",
       );
+      formattedData.areasoflaw = removeDuplicates(
+        formattedData.areasoflaw,
+        "areaoflawid",
+      );
 
       await insertData("lawfirm", formattedData.lawfirm, "lawfirmname");
       await insertData(
@@ -94,6 +99,7 @@ export const actions = {
       );
       await insertData("products", formattedData.products, "lawfirmname");
       await insertData("websites", formattedData.websites, "url");
+      await insertData("areasoflaw", formattedData.areasoflaw, "areaoflawid");
 
       return { success: true, message: 'CSV imported successfully' };
     } catch (error) {
