@@ -110,6 +110,11 @@
     data.forEach((row, rowIndex) => {
       console.log(`Processing row ${rowIndex}:`, row); // Debugging row content
 
+<<<<<<< HEAD
+=======
+      let lawfirmname = "";
+
+>>>>>>> parent of 17cea07 (test again)
       const lawfirmObj = {};
       const lawyerscontactprofilesObj = {};
       const productsObj = {};
@@ -119,9 +124,7 @@
 
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
-        console.log(
-          `Mapping column: ${header} -> table: ${table}, column: ${column}, value: ${value}`,
-        ); // Debugging column mapping
+        console.log(`Mapping column: ${header} -> table: ${table}, column: ${column}, value: ${value}`); // Debugging column mapping
 
        // Step 2: Check and process each table
         if (table === "lawfirm") {
@@ -159,15 +162,23 @@
       }
 
       // Step 4: Push the data into the formattedData object for each table
+<<<<<<< HEAD
       if (Object.keys(lawfirmObj).length) {
+=======
+      if (Object.keys(lawfirmObj).length && lawfirmname) {
+>>>>>>> parent of 17cea07 (test again)
         console.log("Adding lawfirm object to formatted data:", lawfirmObj);
         formattedData.lawfirm.push(lawfirmObj);
       }
       if (Object.keys(lawyerscontactprofilesObj).length) {
+<<<<<<< HEAD
         console.log(
           "Adding lawyerscontactprofiles object to formatted data:",
           lawyerscontactprofilesObj,
         );
+=======
+        console.log("Adding lawyerscontactprofiles object to formatted data:", lawyerscontactprofilesObj);
+>>>>>>> parent of 17cea07 (test again)
         formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
       }
       if (Object.keys(productsObj).length) {
@@ -182,6 +193,7 @@
 
     console.log("Formatted Data:", formattedData);
 
+<<<<<<< HEAD
     formattedData.lawfirm = removeDuplicates(
       formattedData.lawfirm,
       "lawfirmname",
@@ -194,6 +206,12 @@
       formattedData.products,
       "lawfirmname",
     );
+=======
+    // Step 5: Remove duplicates for the data being sent
+    formattedData.lawfirm = removeDuplicates(formattedData.lawfirm, "lawfirmname");
+    formattedData.lawyerscontactprofiles = removeDuplicates(formattedData.lawyerscontactprofiles, "email");
+    formattedData.products = removeDuplicates(formattedData.products, "lawfirmname");
+>>>>>>> parent of 17cea07 (test again)
     formattedData.websites = removeDuplicates(formattedData.websites, "url");
 
     const formData = new FormData();
@@ -204,28 +222,23 @@
       function getCookie(name) {
         const value = `; ${document.cookie}`;
         const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(";").shift();
+        if (parts.length === 2) return parts.pop().split(';').shift();
       }
 
       // Get the access token from the cookie
-      const accessToken = getCookie("supabase-auth-token");
+      const accessToken = getCookie('supabase-auth-token');
 
       const response = await fetch("/upload", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          "Authorization": `Bearer ${accessToken}`,
         },
         body: formData,
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(
-          "HTTP error! status:",
-          response.status,
-          "Response text:",
-          errorText,
-        );
+        console.error("HTTP error! status:", response.status, "Response text:", errorText);
         return;
       }
 
@@ -258,6 +271,9 @@
       return true;
     });
   }
+
+
+
 </script>
 
 <div class="homeBanner">
@@ -289,8 +305,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
@@ -374,4 +389,4 @@
     margin-left: 5%;
     margin-bottom: 50px;
   }
-</style>
+  </style>
