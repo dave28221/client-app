@@ -182,7 +182,6 @@
 
     console.log("Formatted Data:", formattedData);
 
-    // Step 5: Remove duplicates for the data being sent
     formattedData.lawfirm = removeDuplicates(
       formattedData.lawfirm,
       "lawfirmname",
@@ -201,8 +200,7 @@
     formData.append("data", JSON.stringify(formattedData));
 
     try {
-      // Step 6: Send the formatted data to the server
-      // Function to get a cookie by name
+
       function getCookie(name) {
         const value = `; ${document.cookie}`;
         const parts = value.split(`; ${name}=`);
