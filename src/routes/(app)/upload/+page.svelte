@@ -1,5 +1,5 @@
 <script>
-  import Papa from 'papaparse';
+  import { parse } from 'csv-parse/browser/esm';
   let file,
     headers = [],
     data = [],
@@ -19,21 +19,21 @@
     if (!file) return alert("Select a file");
     const reader = new FileReader();
     reader.onload = (event) => {
-      Papa.parse(event.target.result, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          headers = results.meta.fields;
-          data = results.data;
-          columnMappings = headers.map((header) => ({
-            header,
-            table: "",
-            column: "",
-          }));
-        },
-        error: (err) => {
+      parse(event.target.result, {
+        columns: true,
+        skip_empty_lines: true
+      }, (err, output) => {
+        if (err) {
           console.error("CSV Parsing Error:", err);
-        },
+          return;
+        }
+        headers = Object.keys(output[0]);
+        data = output;
+        columnMappings = headers.map((header) => ({
+          header,
+          table: "",
+          column: "",
+        }));
       });
     };
     reader.readAsText(file);
@@ -59,7 +59,7 @@
     });
 
     try {
-      const response = await fetch("/upload", {
+      const response = await fetch("/(app)/upload", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
