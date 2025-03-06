@@ -71,7 +71,7 @@
         console.log(result.message);
         alert(result.message);
       } else {
-        console.error(result.error);
+        console.error("Server error:", result);
         alert(`Error: ${result.error}`);
       }
     } catch (error) {
