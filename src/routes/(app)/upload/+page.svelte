@@ -1,13 +1,53 @@
 <script>
-  import Papa from 'papaparse';
+  import Papa from "papaparse";
   let file,
     headers = [],
     data = [],
     columnMappings = [];
   const tableColumns = {
-    lawfirm: ["lawfirmname", "clientstatus", "websiteurl", "address1", "address2", "city", "stateregion", "postalcode", "country", "phonenumber", "emailaddress", "description", "numberofemployees"],
-    lawyerscontactprofiles: ["firstname", "lastname", "email", "phone", "profilepicture", "position", "accountemail", "accountphone", "addressline1", "suburb", "postcode", "state", "country", "website", "lawfirmname"],
-    products: ["websitedevelopment", "websitehosting", "websitemanagement", "newsletters", "searchengineoptimisation", "socialmediamanagement", "websiteperformance", "advertising", "lawfirmname"],
+    lawfirm: [
+      "lawfirmname",
+      "clientstatus",
+      "websiteurl",
+      "address1",
+      "address2",
+      "city",
+      "stateregion",
+      "postalcode",
+      "country",
+      "phonenumber",
+      "emailaddress",
+      "description",
+      "numberofemployees",
+    ],
+    lawyerscontactprofiles: [
+      "firstname",
+      "lastname",
+      "email",
+      "phone",
+      "profilepicture",
+      "position",
+      "accountemail",
+      "accountphone",
+      "addressline1",
+      "suburb",
+      "postcode",
+      "state",
+      "country",
+      "website",
+      "lawfirmname",
+    ],
+    products: [
+      "websitedevelopment",
+      "websitehosting",
+      "websitemanagement",
+      "newsletters",
+      "searchengineoptimisation",
+      "socialmediamanagement",
+      "websiteperformance",
+      "advertising",
+      "lawfirmname",
+    ],
     websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
   };
 
@@ -47,25 +87,35 @@
       websites: [],
     };
 
+    // Ensure that columnMappings has valid values for each entry
     data.forEach((row) => {
       const entry = {};
       columnMappings.forEach(({ header, table, column }) => {
-        if (table && column) entry[column] = row[header]?.trim() || "";
+        if (table && column) {
+          // Safely map the CSV row to the proper table and column
+          entry[column] = row[header]?.trim() || "";
+        }
       });
+
+      // Push the entry to the corresponding table array
       if (entry.lawfirmname) formattedData.lawfirm.push(entry);
       if (entry.email) formattedData.lawyerscontactprofiles.push(entry);
       if (entry.websitedevelopment) formattedData.products.push(entry);
       if (entry.url) formattedData.websites.push(entry);
     });
 
+    // Log the formatted data for debugging
+    console.log("Formatted Data:", formattedData);
+
     try {
-      const response = await fetch("https://clients.liftlegal.com/upload", {
+      const response = await fetch("/upload", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ data: formattedData }),
       });
+
       const result = await response.json();
       if (result.success) {
         console.log(result.message);
@@ -110,7 +160,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
