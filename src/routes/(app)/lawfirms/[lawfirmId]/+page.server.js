@@ -1,4 +1,4 @@
-import mailchimp from '@mailchimp/mailchimp_marketing';
+/*import mailchimp from '@mailchimp/mailchimp_marketing';
 
 const apiKey = process.env.VITE_MAILCHIMP_API_KEY;
 
@@ -39,4 +39,4 @@ export async function load() {
             }
         };
     }
-}
+}*/

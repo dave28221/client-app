@@ -282,7 +282,7 @@
     {/if}
 </div>
 
-<div class="campaigns">
+<!--<div class="campaigns">
     <h2 class="newsCampaign">Newsletter Campaigns</h2>
 
     {#if data && data.response.campaigns && data.response.campaigns.length > 0}
@@ -307,6 +307,7 @@
         <p>No data available.</p>
     {/if}
 </div>
+-->
 
 <style>
     .newsCampaign {
