@@ -146,23 +146,14 @@
     };
 
     data.forEach((row) => {
-      const record = {};
+      const lawfirmname = row["lawfirmname"]?.trim() || "";
 
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          record[column] = row[header]?.trim() || "";
+          const record = { lawfirmname, [column]: row[header]?.trim() || "" };
+          tables[table].push(record);
         }
       });
-
-      if (record.lawfirmname) {
-        tables.lawfirm.push(record);
-      } else {
-        for (const table in tables) {
-          if (columnMappings.some((mapping) => mapping.table === table)) {
-            tables[table].push(record);
-          }
-        }
-      }
     });
 
     for (const table in tables) {
@@ -207,10 +198,10 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
+
 
 <style>
   .searchAndAdd {
