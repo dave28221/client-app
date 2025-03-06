@@ -59,7 +59,7 @@
     });
 
     try {
-      const response = await fetch("/upload", {
+      const response = await fetch("/(app)/upload", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
