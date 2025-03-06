@@ -1,5 +1,5 @@
 <script>
-  import { parse } from "csv-parse";
+  import Papa from 'papaparse';
   let file,
     headers = [],
     data = [],
@@ -19,20 +19,22 @@
     if (!file) return alert("Select a file");
     const reader = new FileReader();
     reader.onload = (event) => {
-      parse(
-        event.target.result,
-        { columns: true, skip_empty_lines: true },
-        (err, output) => {
-          if (err) return console.error("CSV Parsing Error:", err);
-          headers = Object.keys(output[0]);
-          data = output;
+      Papa.parse(event.target.result, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          headers = results.meta.fields;
+          data = results.data;
           columnMappings = headers.map((header) => ({
             header,
             table: "",
             column: "",
           }));
         },
-      );
+        error: (err) => {
+          console.error("CSV Parsing Error:", err);
+        },
+      });
     };
     reader.readAsText(file);
   }
@@ -102,8 +104,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
