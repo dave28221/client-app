@@ -16,7 +16,22 @@ function removeDuplicates(data, uniqueColumn) {
 async function insertData(table, data, uniqueColumn) {
   if (data.length === 0) return;
 
+  const validatedData = data.map(item => {
+    const newItem = {};
+    for (const key in item) {
+      if (item.hasOwnProperty(key)) {
 
+        if (typeof item[key] === 'number') {
+          newItem[key] = item[key];
+        } else if (typeof item[key] === 'boolean') {
+          newItem[key] = item[key];
+        } else {
+          newItem[key] = item[key] ? item[key].toString() : null; 
+        }
+      }
+    }
+    return newItem;
+  });
 
   const { data: supabaseData, error } = await supabase
     .from(table)

@@ -49,7 +49,7 @@
       "advertising",
       "lawfirmname",
     ],
-    websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"]
+    websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
   };
 
   function handleFileChange(event) {
@@ -119,13 +119,17 @@
 
       columnMappings.forEach(({ header, table, column }) => {
         const value = row[header] ? row[header].trim() : "";
-        console.log(`Mapping column: ${header} -> table: ${table}, column: ${column}, value: ${value}`); // Debugging column mapping
+        console.log(
+          `Mapping column: ${header} -> table: ${table}, column: ${column}, value: ${value}`,
+        ); // Debugging column mapping
+        console.log("Final columnMappings:", columnMappings);
 
         // Step 2: Check and process each table
         if (table === "lawfirm") {
           if (column === "lawfirmname") {
             let lawfirmNameHeader = columnMappings.find(
-              (mapping) => mapping.table === "lawfirm" && mapping.column === "lawfirmname"
+              (mapping) =>
+                mapping.table === "lawfirm" && mapping.column === "lawfirmname",
             )?.header;
             if (lawfirmNameHeader) {
               lawfirmname = row[lawfirmNameHeader]?.trim() || "";
@@ -143,17 +147,9 @@
 
       // Step 3: Propagate the lawfirmname to all related tables if it's available
       if (lawfirmname) {
-        console.log(`Propagating lawfirmname: ${lawfirmname}`);
-        // Ensure that lawfirmname is filled in the other tables
-        if (!lawyerscontactprofilesObj.lawfirmname) {
-          lawyerscontactprofilesObj.lawfirmname = lawfirmname;
-        }
-        if (!productsObj.lawfirmname) {
-          productsObj.lawfirmname = lawfirmname;
-        }
-        if (!websitesObj.lawfirmname) {
-          websitesObj.lawfirmname = lawfirmname;
-        }
+        lawyerscontactprofilesObj.lawfirmname = lawfirmname;
+        productsObj.lawfirmname = lawfirmname;
+        websitesObj.lawfirmname = lawfirmname;
       }
 
       // Step 4: Push the data into the formattedData object for each table
@@ -162,7 +158,10 @@
         formattedData.lawfirm.push(lawfirmObj);
       }
       if (Object.keys(lawyerscontactprofilesObj).length) {
-        console.log("Adding lawyerscontactprofiles object to formatted data:", lawyerscontactprofilesObj);
+        console.log(
+          "Adding lawyerscontactprofiles object to formatted data:",
+          lawyerscontactprofilesObj,
+        );
         formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
       }
       if (Object.keys(productsObj).length) {
@@ -177,37 +176,49 @@
 
     console.log("Formatted Data:", formattedData);
 
-    // Step 5: Remove duplicates for the data being sent
-    formattedData.lawfirm = removeDuplicates(formattedData.lawfirm, "lawfirmname");
-    formattedData.lawyerscontactprofiles = removeDuplicates(formattedData.lawyerscontactprofiles, "email");
-    formattedData.products = removeDuplicates(formattedData.products, "lawfirmname");
+    formattedData.lawfirm = removeDuplicates(
+      formattedData.lawfirm,
+      "lawfirmname",
+    );
+    formattedData.lawyerscontactprofiles = removeDuplicates(
+      formattedData.lawyerscontactprofiles,
+      "email",
+    );
+    formattedData.products = removeDuplicates(
+      formattedData.products,
+      "lawfirmname",
+    );
     formattedData.websites = removeDuplicates(formattedData.websites, "url");
 
     const formData = new FormData();
     formData.append("data", JSON.stringify(formattedData));
 
     try {
-
       function getCookie(name) {
         const value = `; ${document.cookie}`;
         const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
+        if (parts.length === 2) return parts.pop().split(";").shift();
       }
 
       // Get the access token from the cookie
-      const accessToken = getCookie('supabase-auth-token');
+      const accessToken = getCookie("supabase-auth-token");
 
       const response = await fetch("/upload", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: formData,
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("HTTP error! status:", response.status, "Response text:", errorText);
+        console.error(
+          "HTTP error! status:",
+          response.status,
+          "Response text:",
+          errorText,
+        );
         return;
       }
 
@@ -266,12 +277,13 @@
             <option value="">Select column</option>
             {#each tableColumns[mapping.table] as column}
               <option value={column}>{column}</option>
-          {/each}
-        </select>
+            {/each}
+          </select>
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
