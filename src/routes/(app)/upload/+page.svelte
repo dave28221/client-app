@@ -98,10 +98,18 @@
       });
 
       // Push the entry to the corresponding table array
-      formattedData.lawfirm.push(entry);
-      formattedData.lawyerscontactprofiles.push(entry);
-      formattedData.products.push(entry);
-      formattedData.websites.push(entry);
+      if (Object.keys(entry).some(key => tableColumns["lawfirm"].includes(key))) {
+        formattedData.lawfirm.push(entry);
+      }
+      if (Object.keys(entry).some(key => tableColumns["lawyerscontactprofiles"].includes(key))) {
+        formattedData.lawyerscontactprofiles.push(entry);
+      }
+      if (Object.keys(entry).some(key => tableColumns["products"].includes(key))) {
+        formattedData.products.push(entry);
+      }
+      if (Object.keys(entry).some(key => tableColumns["websites"].includes(key))) {
+        formattedData.websites.push(entry);
+      }
     });
 
     // Log the formatted data for debugging
