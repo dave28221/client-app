@@ -1,4 +1,3 @@
-// src/routes/upload/+server.js
 import { json, error } from '@sveltejs/kit';
 import { supabase } from '../../../lib/supabaseClient';
 
@@ -55,15 +54,15 @@ async function insertData(table, data, uniqueColumn, lawfirmMap) {
 
 export async function POST({ request }) {
     try {
-        const formattedData = await request.json();
+        const { data } = await request.json();
 
-        console.log("formatted data from client:", formattedData);
+        console.log("formatted data from client:", data);
 
-        const lawfirmMap = await insertLawfirmAndGetIds(formattedData.lawfirm);
+        const lawfirmMap = await insertLawfirmAndGetIds(data.lawfirm);
 
-        await insertData('lawyerscontactprofiles', formattedData.lawyerscontactprofiles, 'email', lawfirmMap);
-        await insertData('products', formattedData.products, 'lawfirmname', lawfirmMap);
-        await insertData('websites', formattedData.websites, 'url', lawfirmMap);
+        await insertData('lawyerscontactprofiles', data.lawyerscontactprofiles, 'email', lawfirmMap);
+        await insertData('products', data.products, 'lawfirmname', lawfirmMap);
+        await insertData('websites', data.websites, 'url', lawfirmMap);
 
         return json({ success: true, message: 'CSV imported successfully' });
     } catch (err) {

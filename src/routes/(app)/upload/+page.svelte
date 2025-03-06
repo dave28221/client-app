@@ -1,53 +1,13 @@
 <script>
-  import Papa from "papaparse";
+  import Papa from 'papaparse';
   let file,
     headers = [],
     data = [],
     columnMappings = [];
   const tableColumns = {
-    lawfirm: [
-      "lawfirmname",
-      "clientstatus",
-      "websiteurl",
-      "address1",
-      "address2",
-      "city",
-      "stateregion",
-      "postalcode",
-      "country",
-      "phonenumber",
-      "emailaddress",
-      "description",
-      "numberofemployees",
-    ],
-    lawyerscontactprofiles: [
-      "firstname",
-      "lastname",
-      "email",
-      "phone",
-      "profilepicture",
-      "position",
-      "accountemail",
-      "accountphone",
-      "addressline1",
-      "suburb",
-      "postcode",
-      "state",
-      "country",
-      "website",
-      "lawfirmname",
-    ],
-    products: [
-      "websitedevelopment",
-      "websitehosting",
-      "websitemanagement",
-      "newsletters",
-      "searchengineoptimisation",
-      "socialmediamanagement",
-      "websiteperformance",
-      "advertising",
-      "lawfirmname",
-    ],
+    lawfirm: ["lawfirmname", "clientstatus", "websiteurl", "address1", "address2", "city", "stateregion", "postalcode", "country", "phonenumber", "emailaddress", "description", "numberofemployees"],
+    lawyerscontactprofiles: ["firstname", "lastname", "email", "phone", "profilepicture", "position", "accountemail", "accountphone", "addressline1", "suburb", "postcode", "state", "country", "website", "lawfirmname"],
+    products: ["websitedevelopment", "websitehosting", "websitemanagement", "newsletters", "searchengineoptimisation", "socialmediamanagement", "websiteperformance", "advertising", "lawfirmname"],
     websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
   };
 
@@ -99,26 +59,20 @@
     });
 
     try {
-      const response = await fetch("/upload", {
+      const response = await fetch("/(app)/upload", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formattedData),
+        body: JSON.stringify({ data: formattedData }),
       });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          console.log(result.message);
-          alert(result.message);
-        } else {
-          console.error(result.error);
-          alert(`Error: ${result.error}`);
-        }
+      const result = await response.json();
+      if (result.success) {
+        console.log(result.message);
+        alert(result.message);
       } else {
-        console.error("Error uploading:", response.status, response.statusText);
-        alert(`Error uploading: ${response.status} ${response.statusText}`);
+        console.error(result.error);
+        alert(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error uploading:", error);
@@ -156,8 +110,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
