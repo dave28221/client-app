@@ -74,7 +74,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV</h1>
+  <h1 class="leftAlign">Uploadd CSV</h1>
   <div class="searchAndAdd">
     <div>
       <input type="file" accept=".csv" on:change={handleFileChange} />
