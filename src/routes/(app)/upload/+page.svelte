@@ -237,6 +237,15 @@
     display: inline-block;
   }
 
+  input[type="file"] + label {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+
   button {
     background-color: #f2f2f2;
     color: rgb(0, 0, 0);
@@ -272,5 +281,33 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
+    width: 45%;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .mappingRow label {
+    width: 150px;
+  }
+
+  .mappingRow select {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+  }
+
+  .insertButton {
+    background-color: #6161ff;
+    color: #ffffff;
+    margin-top: 20px;
+    margin-left: 5%;
+    margin-bottom: 50px;
+  }
+
+  .leftAlign {
+    text-align: left;
   }
 </style>
