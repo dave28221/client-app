@@ -56,7 +56,7 @@ export async function POST({ request }) {
     try {
         const { data } = await request.json();
 
-        console.log("formatted data from client:", data);
+        console.log("formatted data from client:", JSON.stringify(data, null, 2));
 
         const lawfirmMap = await insertLawfirmAndGetIds(data.lawfirm);
 
@@ -67,6 +67,7 @@ export async function POST({ request }) {
         return json({ success: true, message: 'CSV imported successfully' });
     } catch (err) {
         console.error('Error processing CSV:', err);
+        console.error("Detailed error:", err);
         throw error(err.status || 500, { message: err.message || 'Error importing data' });
     }
 }
