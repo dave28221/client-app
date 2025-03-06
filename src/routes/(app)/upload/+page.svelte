@@ -169,25 +169,19 @@
       }
     });
 
-    if (tables.lawfirm.length > 0) {
-      const { error } = await supabase.from("lawfirm").insert(tables.lawfirm);
-      if (error) {
-        console.error("Error inserting into lawfirm:", error.message);
-        return;
-      } else {
-        console.log("Successfully inserted into lawfirm");
-      }
-    }
-
-    for (const table in tables) {
-      if (table !== "lawfirm" && tables[table].length > 0) {
-        const { error } = await supabase.from(table).insert(tables[table]);
-        if (error) {
-          console.error(`Error inserting into ${table}:`, error.message);
-        } else {
-          console.log(`Successfully inserted into ${table}`);
+    try {
+      for (const table in tables) {
+        if (tables[table].length > 0) {
+          const { error } = await supabase.from(table).insert(tables[table]);
+          if (error) {
+            console.error(`Error inserting into ${table}:`, error.message);
+          } else {
+            console.log(`Successfully inserted into ${table}`);
+          }
         }
       }
+    } catch (error) {
+      console.error("Error inserting data:", error.message);
     }
   }
 </script>
@@ -221,8 +215,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
@@ -305,9 +298,5 @@
     margin-top: 20px;
     margin-left: 5%;
     margin-bottom: 50px;
-  }
-
-  .leftAlign {
-    text-align: left;
   }
 </style>
