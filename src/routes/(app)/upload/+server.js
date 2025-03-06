@@ -67,6 +67,6 @@ export async function POST({ request }) {
         return json({ success: true, message: 'CSV imported successfully' });
     } catch (err) {
         console.error('Error processing CSV:', err);
-        return json({ success: false, error: err.message || 'Error importing data' }, { status: err.status || 500 });
+        throw error(err.status || 500, { message: err.message || 'Error importing data' });
     }
 }
