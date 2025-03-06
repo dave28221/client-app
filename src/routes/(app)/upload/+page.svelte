@@ -1,94 +1,15 @@
 <script>
-  import { parse } from "csv-parse";
-  let file;
-  let headers = [];
-  let data = [];
-  let columnMappings = [];
-
+  import Papa from 'papaparse';
+  let file,
+    headers = [],
+    data = [],
+    columnMappings = [];
   const tableColumns = {
-    lawfirm: [
-      "lawfirmname",
-      "clientstatus",
-      "websiteurl",
-      "address1",
-      "address2",
-      "city",
-      "stateregion",
-      "postalcode",
-      "country",
-      "phonenumber",
-      "emailaddress",
-      "description",
-      "numberofemployees",
-    ],
-    lawyerscontactprofiles: [
-      "firstname",
-      "lastname",
-      "email",
-      "phone",
-      "profilepicture",
-      "position",
-      "accountemail",
-      "accountphone",
-      "addressline1",
-      "suburb",
-      "postcode",
-      "state",
-      "country",
-      "website",
-      "lawfirmname",
-    ],
-    products: [
-      "websitedevelopment",
-      "websitehosting",
-      "websitemanagement",
-      "newsletters",
-      "searchengineoptimisation",
-      "socialmediamanagement",
-      "websiteperformance",
-      "advertising",
-      "lawfirmname",
-    ],
+    lawfirm: ["lawfirmname", "clientstatus", "websiteurl", "address1", "address2", "city", "stateregion", "postalcode", "country", "phonenumber", "emailaddress", "description", "numberofemployees"],
+    lawyerscontactprofiles: ["firstname", "lastname", "email", "phone", "profilepicture", "position", "accountemail", "accountphone", "addressline1", "suburb", "postcode", "state", "country", "website", "lawfirmname"],
+    products: ["websitedevelopment", "websitehosting", "websitemanagement", "newsletters", "searchengineoptimisation", "socialmediamanagement", "websiteperformance", "advertising", "lawfirmname"],
     websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
-    areasoflaw: [
-      "areaoflawid",
-      "agedcareandretirement",
-      "agribusiness",
-      "artsentertainmentandsports",
-      "bankingandfinance",
-      "carbonandcleanenergy",
-      "charitiesandnotforprofit",
-      "commercial",
-      "compensation",
-      "competitionandconsumer",
-      "construction",
-      "corporateadvisory",
-      "crime",
-      "disputeresolution",
-      "employmentandsafety",
-      "energyandresources",
-      "familylaw",
-      "franchising",
-      "governmentandstateownedenterprises",
-      "informationtechnology",
-      "infrastructure",
-      "insolvency",
-      "intellectualproperty",
-      "licensingandhospitality",
-      "lifesciences",
-      "litigation",
-      "migration",
-      "nativetitle",
-      "planningandenvironment",
-      "privateclients",
-      "productrisk",
-      "property",
-      "schoolscollegesanduniversities",
-      "superannuation",
-      "taxationregulationandcompliance",
-      "willsandestateplanning",
-      "workoutsandrestructures",
-    ],
+    areasoflaw: ["areaoflawid", "agedcareandretirement", "agribusiness", "artsentertainmentandsports", "bankingandfinance", "carbonandcleanenergy", "charitiesandnotforprofit", "commercial", "compensation", "competitionandconsumer", "construction", "corporateadvisory", "crime", "disputeresolution", "employmentandsafety", "energyandresources", "familylaw", "franchising", "governmentandstateownedenterprises", "informationtechnology", "infrastructure", "insolvency", "intellectualproperty", "licensingandhospitality", "lifesciences", "litigation", "migration", "nativetitle", "planningandenvironment", "privateclients", "productrisk", "property", "schoolscollegesanduniversities", "superannuation", "taxationregulationandcompliance", "willsandestateplanning", "workoutsandrestructures"],
   };
 
   function handleFileChange(event) {
@@ -103,23 +24,15 @@
     }
 
     const reader = new FileReader();
-    reader.onload = async (event) => {
+    reader.onload = (event) => {
       const csvData = event.target.result;
 
-      parse(
-        csvData,
-        {
-          columns: true,
-          skip_empty_lines: true,
-        },
-        (err, output) => {
-          if (err) {
-            console.error("Error parsing CSV:", err);
-            return;
-          }
-
-          headers = Object.keys(output[0]);
-          data = output;
+      Papa.parse(csvData, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          headers = results.meta.fields;
+          data = results.data;
 
           columnMappings = headers.map((header) => ({
             header,
@@ -131,7 +44,10 @@
           console.log("Data:", data);
           console.log("Column Mappings:", columnMappings);
         },
-      );
+        error: (err) => {
+          console.error("Error parsing CSV:", err);
+        },
+      });
     };
 
     reader.readAsText(file);
@@ -344,8 +260,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
