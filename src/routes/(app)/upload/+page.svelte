@@ -1,41 +1,139 @@
 <script>
-  import { parse } from 'csv-parse/browser/esm';
-  let file,
-    headers = [],
-    data = [],
-    columnMappings = [];
+  import { parse } from "csv-parse";
+  let file;
+  let headers = [];
+  let data = [];
+  let columnMappings = [];
+
   const tableColumns = {
-    lawfirm: ["lawfirmname", "clientstatus", "websiteurl", "address1", "address2", "city", "stateregion", "postalcode", "country", "phonenumber", "emailaddress", "description", "numberofemployees"],
-    lawyerscontactprofiles: ["firstname", "lastname", "email", "phone", "profilepicture", "position", "accountemail", "accountphone", "addressline1", "suburb", "postcode", "state", "country", "website", "lawfirmname"],
-    products: ["websitedevelopment", "websitehosting", "websitemanagement", "newsletters", "searchengineoptimisation", "socialmediamanagement", "websiteperformance", "advertising", "lawfirmname"],
+    lawfirm: [
+      "lawfirmname",
+      "clientstatus",
+      "websiteurl",
+      "address1",
+      "address2",
+      "city",
+      "stateregion",
+      "postalcode",
+      "country",
+      "phonenumber",
+      "emailaddress",
+      "description",
+      "numberofemployees",
+    ],
+    lawyerscontactprofiles: [
+      "firstname",
+      "lastname",
+      "email",
+      "phone",
+      "profilepicture",
+      "position",
+      "accountemail",
+      "accountphone",
+      "addressline1",
+      "suburb",
+      "postcode",
+      "state",
+      "country",
+      "website",
+      "lawfirmname",
+    ],
+    products: [
+      "websitedevelopment",
+      "websitehosting",
+      "websitemanagement",
+      "newsletters",
+      "searchengineoptimisation",
+      "socialmediamanagement",
+      "websiteperformance",
+      "advertising",
+      "lawfirmname",
+    ],
     websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
+    areasoflaw: [
+      "areaoflawid",
+      "agedcareandretirement",
+      "agribusiness",
+      "artsentertainmentandsports",
+      "bankingandfinance",
+      "carbonandcleanenergy",
+      "charitiesandnotforprofit",
+      "commercial",
+      "compensation",
+      "competitionandconsumer",
+      "construction",
+      "corporateadvisory",
+      "crime",
+      "disputeresolution",
+      "employmentandsafety",
+      "energyandresources",
+      "familylaw",
+      "franchising",
+      "governmentandstateownedenterprises",
+      "informationtechnology",
+      "infrastructure",
+      "insolvency",
+      "intellectualproperty",
+      "licensingandhospitality",
+      "lifesciences",
+      "litigation",
+      "migration",
+      "nativetitle",
+      "planningandenvironment",
+      "privateclients",
+      "productrisk",
+      "property",
+      "schoolscollegesanduniversities",
+      "superannuation",
+      "taxationregulationandcompliance",
+      "willsandestateplanning",
+      "workoutsandrestructures",
+    ],
   };
 
   function handleFileChange(event) {
     file = event.target.files[0];
+    console.log("File selected:", file);
   }
 
   async function handleFileUpload() {
-    if (!file) return alert("Select a file");
+    if (!file) {
+      alert("Please select a file to upload.");
+      return;
+    }
+
     const reader = new FileReader();
-    reader.onload = (event) => {
-      parse(event.target.result, {
-        columns: true,
-        skip_empty_lines: true
-      }, (err, output) => {
-        if (err) {
-          console.error("CSV Parsing Error:", err);
-          return;
-        }
-        headers = Object.keys(output[0]);
-        data = output;
-        columnMappings = headers.map((header) => ({
-          header,
-          table: "",
-          column: "",
-        }));
-      });
+    reader.onload = async (event) => {
+      const csvData = event.target.result;
+
+      parse(
+        csvData,
+        {
+          columns: true,
+          skip_empty_lines: true,
+        },
+        (err, output) => {
+          if (err) {
+            console.error("Error parsing CSV:", err);
+            return;
+          }
+
+          headers = Object.keys(output[0]);
+          data = output;
+
+          columnMappings = headers.map((header) => ({
+            header,
+            table: "",
+            column: "",
+          }));
+
+          console.log("Headers:", headers);
+          console.log("Data:", data);
+          console.log("Column Mappings:", columnMappings);
+        },
+      );
     };
+
     reader.readAsText(file);
   }
 
@@ -45,39 +143,175 @@
       lawyerscontactprofiles: [],
       products: [],
       websites: [],
+      areasoflaw: [],
     };
 
-    data.forEach((row) => {
-      const entry = {};
+    // Step 1: Process each row and propagate lawfirmname where necessary
+    data.forEach((row, rowIndex) => {
+      console.log(`Processing row ${rowIndex}:`, row); // Debugging row content
+
+      let lawfirmname = "";
+
+      const lawfirmObj = {};
+      const lawyerscontactprofilesObj = {};
+      const productsObj = {};
+      const websitesObj = {};
+      const areasoflawObj = {};
+
       columnMappings.forEach(({ header, table, column }) => {
-        if (table && column) entry[column] = row[header]?.trim() || "";
+        const value = row[header] ? row[header].trim() : "";
+        console.log(
+          `Mapping column: ${header} -> table: ${table}, column: ${column}, value: ${value}`,
+        ); // Debugging column mapping
+
+        // Step 2: Check and process each table
+        if (table === "lawfirm") {
+          if (column === "lawfirmname") {
+            let lawfirmNameHeader = columnMappings.find(
+              (mapping) =>
+                mapping.table === "lawfirm" && mapping.column === "lawfirmname",
+            )?.header;
+            if (lawfirmNameHeader) {
+              lawfirmname = row[lawfirmNameHeader]?.trim() || "";
+            }
+          }
+          lawfirmObj[column] = value;
+        } else if (table === "lawyerscontactprofiles") {
+          lawyerscontactprofilesObj[column] = value;
+        } else if (table === "products") {
+          productsObj[column] = value;
+        } else if (table === "websites") {
+          websitesObj[column] = value;
+        } else if (table === "areasoflaw") {
+          areasoflawObj[column] = value;
+        }
       });
-      if (entry.lawfirmname) formattedData.lawfirm.push(entry);
-      if (entry.email) formattedData.lawyerscontactprofiles.push(entry);
-      if (entry.websitedevelopment) formattedData.products.push(entry);
-      if (entry.url) formattedData.websites.push(entry);
+
+      // Step 3: Propagate the lawfirmname to all related tables if it's available
+      if (lawfirmname) {
+        console.log(`Propagating lawfirmname: ${lawfirmname}`);
+        // Ensure that lawfirmname is filled in the other tables
+        if (!lawyerscontactprofilesObj.lawfirmname) {
+          lawyerscontactprofilesObj.lawfirmname = lawfirmname;
+        }
+        if (!productsObj.lawfirmname) {
+          productsObj.lawfirmname = lawfirmname;
+        }
+        if (!websitesObj.lawfirmname) {
+          websitesObj.lawfirmname = lawfirmname;
+        }
+      }
+
+      // Step 4: Push the data into the formattedData object for each table
+      if (Object.keys(lawfirmObj).length && lawfirmname) {
+        console.log("Adding lawfirm object to formatted data:", lawfirmObj);
+        formattedData.lawfirm.push(lawfirmObj);
+      }
+      if (Object.keys(lawyerscontactprofilesObj).length) {
+        console.log(
+          "Adding lawyerscontactprofiles object to formatted data:",
+          lawyerscontactprofilesObj,
+        );
+        formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
+      }
+      if (Object.keys(productsObj).length) {
+        console.log("Adding products object to formatted data:", productsObj);
+        formattedData.products.push(productsObj);
+      }
+      if (Object.keys(websitesObj).length) {
+        console.log("Adding websites object to formatted data:", websitesObj);
+        formattedData.websites.push(websitesObj);
+      }
+      if (Object.keys(areasoflawObj).length) {
+        console.log(
+          "Adding areasoflaw object to formatted data:",
+          areasoflawObj,
+        );
+        formattedData.areasoflaw.push(areasoflawObj);
+      }
     });
 
+    console.log("Formatted Data:", formattedData);
+
+    // Step 5: Remove duplicates for the data being sent
+    formattedData.lawfirm = removeDuplicates(
+      formattedData.lawfirm,
+      "lawfirmname",
+    );
+    formattedData.lawyerscontactprofiles = removeDuplicates(
+      formattedData.lawyerscontactprofiles,
+      "email",
+    );
+    formattedData.products = removeDuplicates(
+      formattedData.products,
+      "lawfirmname",
+    );
+    formattedData.websites = removeDuplicates(formattedData.websites, "url");
+    formattedData.areasoflaw = removeDuplicates(
+      formattedData.areasoflaw,
+      "areaoflawid",
+    );
+
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(formattedData));
+
     try {
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(";").shift();
+      }
+
+      // Get the access token from the cookie
+      const accessToken = getCookie("supabase-auth-token");
+
       const response = await fetch("/upload", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ data: formattedData }),
+        body: formData,
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(
+          "HTTP error! status:",
+          response.status,
+          "Response text:",
+          errorText,
+        );
+        return;
+      }
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const errorText = await response.text();
+        console.error("Error: Non-JSON response:", errorText);
+        return;
+      }
+
       const result = await response.json();
       if (result.success) {
         console.log(result.message);
-        alert(result.message);
       } else {
         console.error(result.error);
-        alert(`Error: ${result.error}`);
       }
     } catch (error) {
-      console.error("Error uploading:", error);
-      alert(`Error uploading: ${error.message}`);
+      console.error("Error uploading data:", error);
     }
+  }
+
+  function removeDuplicates(data, uniqueColumn) {
+    const seen = new Set();
+    return data.filter((item) => {
+      const value = item[uniqueColumn];
+      if (seen.has(value)) {
+        return false;
+      }
+      seen.add(value);
+      return true;
+    });
   }
 </script>
 
@@ -110,7 +344,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
