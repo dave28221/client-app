@@ -74,17 +74,38 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Uploadd CSV</h1>
+  <h1 class="leftAlign">Upload CSV</h1>
   <div class="searchAndAdd">
-    <div>
-      <input type="file" accept=".csv" on:change={handleFileChange} />
-      <button on:click={handleFileUpload}>Import CSV</button>
-    </div>
-    {#if headers.length}
-      <button on:click={handleDataInsert}>Insert Data</button>
-    {/if}
+    <input type="file" accept=".csv" on:change={handleFileChange} />
+    <button on:click={handleFileUpload}>Import CSV</button>
   </div>
 </div>
+
+{#if headers.length}
+  <div class="mappingSection">
+    {#each columnMappings as mapping, index}
+      <div class="mappingRow">
+        <label for="table-{index}">{mapping.header}</label>
+        <select id="table-{index}" bind:value={mapping.table}>
+          <option value="">Select table</option>
+          {#each Object.keys(tableColumns) as table}
+            <option value={table}>{table}</option>
+          {/each}
+        </select>
+        {#if mapping.table}
+          <select id="column-{index}" bind:value={mapping.column}>
+            <option value="">Select column</option>
+            {#each tableColumns[mapping.table] as column}
+              <option value={column}>{column}</option>
+            {/each}
+          </select>
+        {/if}
+      </div>
+    {/each}
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
+  </div>
+{/if}
 
 <style>
   .searchAndAdd {
