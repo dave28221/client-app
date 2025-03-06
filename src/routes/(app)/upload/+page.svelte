@@ -98,10 +98,10 @@
       });
 
       // Push the entry to the corresponding table array
-      if (entry.lawfirmname) formattedData.lawfirm.push(entry);
-      if (entry.email) formattedData.lawyerscontactprofiles.push(entry);
-      if (entry.websitedevelopment) formattedData.products.push(entry);
-      if (entry.url) formattedData.websites.push(entry);
+      formattedData.lawfirm.push(entry);
+      formattedData.lawyerscontactprofiles.push(entry);
+      formattedData.products.push(entry);
+      formattedData.websites.push(entry);
     });
 
     // Log the formatted data for debugging

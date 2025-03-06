@@ -33,10 +33,13 @@ async function insertData(table, data, uniqueColumn, lawfirmMap) {
     try {
         if (data.length === 0) return;
 
-        const modifiedData = data.map(item => ({
-            ...item,
-            lawfirm_id: lawfirmMap[item.lawfirmname] || null
-        }));
+        const modifiedData = data.map(item => {
+            let lawfirm_id = lawfirmMap[item.lawfirmname] || null;
+            return {
+                ...item,
+                lawfirm_id: lawfirm_id
+            };
+        });
 
         console.log(`Data being sent to ${table}:`, modifiedData);
 
