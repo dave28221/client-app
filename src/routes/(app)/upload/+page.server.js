@@ -1,5 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { supabase } from '../../../lib/supabaseClient';
+import Papa from 'papaparse';
 
 async function insertLawfirmAndGetIds(data) {
   if (data.length === 0) return [];
@@ -43,8 +44,9 @@ export const actions = {
     if (!data) return fail(400, { error: 'No data provided' });
 
     try {
-      const formattedData = JSON.parse(data);
-      
+      const parsedData = Papa.parse(data, { header: true });
+      const formattedData = parsedData.data;
+
       // Insert lawfirm first and get their IDs
       const lawfirmMap = await insertLawfirmAndGetIds(formattedData.lawfirm);
 
