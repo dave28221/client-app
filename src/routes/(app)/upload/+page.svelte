@@ -147,17 +147,40 @@
 
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
+      const record = { lawfirmname };
 
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          const record = { lawfirmname, [column]: row[header]?.trim() || "" };
-          tables[table].push(record);
+          record[column] = row[header]?.trim() || "";
         }
       });
+
+      if (record.lawfirmname) {
+        tables.lawfirm.push({ lawfirmname: record.lawfirmname });
+        delete record.lawfirmname;
+        if (Object.keys(record).length > 0) {
+          const mapping = columnMappings.find(
+            (m) => m.header === "lawfirmname",
+          );
+          if (mapping && mapping.table) {
+            tables[mapping.table].push(record);
+          }
+        }
+      }
     });
 
+    if (tables.lawfirm.length > 0) {
+      const { error } = await supabase.from("lawfirm").insert(tables.lawfirm);
+      if (error) {
+        console.error("Error inserting into lawfirm:", error.message);
+        return;
+      } else {
+        console.log("Successfully inserted into lawfirm");
+      }
+    }
+
     for (const table in tables) {
-      if (tables[table].length > 0) {
+      if (table !== "lawfirm" && tables[table].length > 0) {
         const { error } = await supabase.from(table).insert(tables[table]);
         if (error) {
           console.error(`Error inserting into ${table}:`, error.message);
@@ -198,10 +221,10 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
-
 
 <style>
   .searchAndAdd {
@@ -212,15 +235,6 @@
 
   input[type="file"] {
     display: inline-block;
-  }
-
-  input[type="file"] + label {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
-    border-radius: 5px;
   }
 
   button {
@@ -258,29 +272,5 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
-    width: 45%;
-    font-size: 16px;
-    font-weight: 600;
-  }
-
-  .mappingRow label {
-    width: 150px;
-  }
-
-  .mappingRow select {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    transition: border-color 0.3s ease;
-  }
-
-  .insertButton {
-    background-color: #6161ff;
-    color: #ffffff;
-    margin-top: 20px;
-    margin-left: 5%;
-    margin-bottom: 50px;
   }
 </style>
