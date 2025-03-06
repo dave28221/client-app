@@ -5,10 +5,10 @@
     data = [],
     columnMappings = [];
   const tableColumns = {
-    lawfirm: ["lawfirmname", "clientstatus", "websiteurl"],
-    lawyerscontactprofiles: ["firstname", "lastname", "email", "lawfirmname"],
-    products: ["websitedevelopment", "lawfirmname"],
-    websites: ["url", "lawfirmname"],
+    lawfirm: ["lawfirmname", "clientstatus", "websiteurl", "address1", "address2", "city", "stateregion", "postalcode", "country", "phonenumber", "emailaddress", "description", "numberofemployees"],
+    lawyerscontactprofiles: ["firstname", "lastname", "email", "phone", "profilepicture", "position", "accountemail", "accountphone", "addressline1", "suburb", "postcode", "state", "country", "website", "lawfirmname"],
+    products: ["websitedevelopment", "websitehosting", "websitemanagement", "newsletters", "searchengineoptimisation", "socialmediamanagement", "websiteperformance", "advertising", "lawfirmname"],
+    websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
   };
 
   function handleFileChange(event) {
@@ -48,7 +48,6 @@
     };
 
     data.forEach((row) => {
-      let lawfirmname = row["lawfirmname"]?.trim();
       const entry = {};
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) entry[column] = row[header]?.trim() || "";
