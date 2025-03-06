@@ -146,7 +146,6 @@
     };
 
     data.forEach((row) => {
-      let lawfirmname = row["lawfirmname"]?.trim() || "";
       const record = {};
 
       columnMappings.forEach(({ header, table, column }) => {
@@ -155,12 +154,14 @@
         }
       });
 
-      if (record.lawfirmname || lawfirmname) {
+      if (record.lawfirmname) {
         tables.lawfirm.push(record);
-      } else if (
-        columnMappings.some(({ table }) => table === "lawyerscontactprofiles")
-      ) {
-        tables.lawyerscontactprofiles.push(record);
+      } else {
+        for (const table in tables) {
+          if (columnMappings.some((mapping) => mapping.table === table)) {
+            tables[table].push(record);
+          }
+        }
       }
     });
 
