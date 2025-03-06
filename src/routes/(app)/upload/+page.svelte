@@ -1,100 +1,39 @@
 <script>
   import { parse } from "csv-parse";
-  let file;
-  let headers = [];
-  let data = [];
-  let columnMappings = [];
-
+  let file,
+    headers = [],
+    data = [],
+    columnMappings = [];
   const tableColumns = {
-    lawfirm: [
-      "lawfirmname",
-      "clientstatus",
-      "websiteurl",
-      "address1",
-      "address2",
-      "city",
-      "stateregion",
-      "postalcode",
-      "country",
-      "phonenumber",
-      "emailaddress",
-      "description",
-      "numberofemployees",
-    ],
-    lawyerscontactprofiles: [
-      "firstname",
-      "lastname",
-      "email",
-      "phone",
-      "profilepicture",
-      "position",
-      "accountemail",
-      "accountphone",
-      "addressline1",
-      "suburb",
-      "postcode",
-      "state",
-      "country",
-      "website",
-      "lawfirmname",
-    ],
-    products: [
-      "websitedevelopment",
-      "websitehosting",
-      "websitemanagement",
-      "newsletters",
-      "searchengineoptimisation",
-      "socialmediamanagement",
-      "websiteperformance",
-      "advertising",
-      "lawfirmname",
-    ],
-    websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
+    lawfirm: ["lawfirmname", "clientstatus", "websiteurl"],
+    lawyerscontactprofiles: ["firstname", "lastname", "email", "lawfirmname"],
+    products: ["websitedevelopment", "lawfirmname"],
+    websites: ["url", "lawfirmname"],
   };
 
   function handleFileChange(event) {
     file = event.target.files[0];
-    console.log("File selected:", file);
   }
 
   async function handleFileUpload() {
-    if (!file) {
-      alert("Please select a file to upload.");
-      return;
-    }
-
+    if (!file) return alert("Select a file");
     const reader = new FileReader();
-    reader.onload = async (event) => {
-      const csvData = event.target.result;
-
+    reader.onload = (event) => {
       parse(
-        csvData,
-        {
-          columns: true,
-          skip_empty_lines: true,
-        },
+        event.target.result,
+        { columns: true, skip_empty_lines: true },
         (err, output) => {
-          if (err) {
-            console.error("Error parsing CSV:", err);
-            return;
-          }
-
+          if (err) return console.error("CSV Parsing Error:", err);
           headers = Object.keys(output[0]);
           data = output;
-
           columnMappings = headers.map((header) => ({
             header,
             table: "",
             column: "",
           }));
-
-          console.log("Headers:", headers);
-          console.log("Data:", data);
-          console.log("Column Mappings:", columnMappings);
         },
       );
     };
-
     reader.readAsText(file);
   }
 
@@ -106,119 +45,31 @@
       websites: [],
     };
 
-    // Step 1: Process each row and propagate lawfirmname where necessary
-    data.forEach((row, rowIndex) => {
-      console.log(`Processing row ${rowIndex}:`, row); // Debugging row content
-
-      const lawfirmObj = {};
-      const lawyerscontactprofilesObj = {};
-      const productsObj = {};
-      const websitesObj = {};
-
+    data.forEach((row) => {
+      let lawfirmname = row["lawfirmname"]?.trim();
+      const entry = {};
       columnMappings.forEach(({ header, table, column }) => {
-        const value = row[header] ? row[header].trim() : "";
-        console.log(
-          `Mapping column: ${header} -> table: ${table}, column: ${column}, value: ${value}`,
-        ); // Debugging column mapping
+        if (table && column) entry[column] = row[header]?.trim() || "";
       });
-      // Step 4: Push the data into the formattedData object for each table
-      if (Object.keys(lawfirmObj).length && lawfirmname) {
-        console.log("Adding lawfirm object to formatted data:", lawfirmObj);
-        formattedData.lawfirm.push(lawfirmObj);
-      }
-      if (Object.keys(lawyerscontactprofilesObj).length) {
-        console.log(
-          "Adding lawyerscontactprofiles object to formatted data:",
-          lawyerscontactprofilesObj,
-        );
-        formattedData.lawyerscontactprofiles.push(lawyerscontactprofilesObj);
-      }
-      if (Object.keys(productsObj).length) {
-        console.log("Adding products object to formatted data:", productsObj);
-        formattedData.products.push(productsObj);
-      }
-      if (Object.keys(websitesObj).length) {
-        console.log("Adding websites object to formatted data:", websitesObj);
-        formattedData.websites.push(websitesObj);
-      }
+      if (entry.lawfirmname) formattedData.lawfirm.push(entry);
+      if (entry.email) formattedData.lawyerscontactprofiles.push(entry);
+      if (entry.websitedevelopment) formattedData.products.push(entry);
+      if (entry.url) formattedData.websites.push(entry);
     });
-
-    console.log("Formatted Data:", formattedData);
-
-    formattedData.lawfirm = removeDuplicates(
-      formattedData.lawfirm,
-      "lawfirmname",
-    );
-    formattedData.lawyerscontactprofiles = removeDuplicates(
-      formattedData.lawyerscontactprofiles,
-      "email",
-    );
-    formattedData.products = removeDuplicates(
-      formattedData.products,
-      "lawfirmname",
-    );
-    formattedData.websites = removeDuplicates(formattedData.websites, "url");
 
     const formData = new FormData();
     formData.append("data", JSON.stringify(formattedData));
-
     try {
-      function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(";").shift();
-      }
-
-      // Get the access token from the cookie
-      const accessToken = getCookie("supabase-auth-token");
-
       const response = await fetch("/upload", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
         body: formData,
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(
-          "HTTP error! status:",
-          response.status,
-          "Response text:",
-          errorText,
-        );
-        return;
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const errorText = await response.text();
-        console.error("Error: Non-JSON response:", errorText);
-        return;
-      }
-
       const result = await response.json();
-      if (result.success) {
-        console.log(result.message);
-      } else {
-        console.error(result.error);
-      }
+      if (result.success) console.log(result.message);
+      else console.error(result.error);
     } catch (error) {
-      console.error("Error uploading data:", error);
+      console.error("Error uploading:", error);
     }
-  }
-
-  function removeDuplicates(data, uniqueColumn) {
-    const seen = new Set();
-    return data.filter((item) => {
-      const value = item[uniqueColumn];
-      if (seen.has(value)) {
-        return false;
-      }
-      seen.add(value);
-      return true;
-    });
   }
 </script>
 
