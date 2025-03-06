@@ -3,7 +3,7 @@ config();
 
 import mailchimp from '@mailchimp/mailchimp_marketing';
 
-const apiKey = process.env.VITE_MAILCHIMP_API_KEY;
+const apiKey = env.VITE_MAILCHIMP_API_KEY;
 
 if (!apiKey) {
     console.error('VITE_MAILCHIMP_API_KEY is not defined in .env file');
