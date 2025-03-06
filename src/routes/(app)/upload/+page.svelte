@@ -47,45 +47,6 @@
       "lawfirmname",
     ],
     websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
-    areasoflaw: [
-      "areaoflawid",
-      "agedcareandretirement",
-      "agribusiness",
-      "artsentertainmentandsports",
-      "bankingandfinance",
-      "carbonandcleanenergy",
-      "charitiesandnotforprofit",
-      "commercial",
-      "compensation",
-      "competitionandconsumer",
-      "construction",
-      "corporateadvisory",
-      "crime",
-      "disputeresolution",
-      "employmentandsafety",
-      "energyandresources",
-      "familylaw",
-      "franchising",
-      "governmentandstateownedenterprises",
-      "informationtechnology",
-      "infrastructure",
-      "insolvency",
-      "intellectualproperty",
-      "licensingandhospitality",
-      "lifesciences",
-      "litigation",
-      "migration",
-      "nativetitle",
-      "planningandenvironment",
-      "privateclients",
-      "productrisk",
-      "property",
-      "schoolscollegesanduniversities",
-      "superannuation",
-      "taxationregulationandcompliance",
-      "willsandestateplanning",
-      "workoutsandrestructures",
-    ],
   };
 
   let file,
@@ -142,7 +103,6 @@
       lawyerscontactprofiles: [],
       products: [],
       websites: [],
-      areasoflaw: [],
     };
 
     data.forEach((row) => {
@@ -151,26 +111,30 @@
 
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          record[column] = row[header]?.trim() || "";
-        }
-      });
-
-      if (record.lawfirmname) {
-        tables.lawfirm.push({ lawfirmname: record.lawfirmname });
-        delete record.lawfirmname;
-        if (Object.keys(record).length > 0) {
-          const mapping = columnMappings.find(
-            (m) => m.header === "lawfirmname",
-          );
-          if (mapping && mapping.table) {
-            tables[mapping.table].push(record);
+          if (column === "lawfirmname" && table === "lawfirm") {
+            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
+          } else {
+            const tempRecord = { lawfirmname: lawfirmname };
+            tempRecord[column] = row[header]?.trim() || "";
+            tables[table].push(tempRecord);
           }
         }
-      }
+      });
     });
 
     try {
       for (const table in tables) {
+        if (table === "lawfirm") {
+          const uniqueLawfirms = [];
+          const seen = new Set();
+          tables[table].forEach((obj) => {
+            if (!seen.has(obj.lawfirmname)) {
+              seen.add(obj.lawfirmname);
+              uniqueLawfirms.push(obj);
+            }
+          });
+          tables[table] = uniqueLawfirms;
+        }
         if (tables[table].length > 0) {
           const { error } = await supabase.from(table).insert(tables[table]);
           if (error) {
@@ -215,7 +179,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
