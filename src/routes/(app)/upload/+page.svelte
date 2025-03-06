@@ -59,7 +59,7 @@
     });
 
     try {
-      const response = await fetch("http://localhost:5173/(app)/upload", {
+      const response = await fetch("https://clients.liftlegal.com/(app)/upload", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
