@@ -116,10 +116,10 @@
           } else {
             const tempRecord = {};
             tempRecord[column] = row[header]?.trim() || "";
-            if (column === "lawfirmname") {
-              tempRecord["lawfirmname"] = lawfirmname;
-            }
             if (Object.keys(tempRecord).length > 0) {
+              if (lawfirmname && table !== "lawfirm") {
+                tempRecord["lawfirmname"] = lawfirmname;
+              }
               tables[table].push(tempRecord);
               rowTables.add(table); // Add table to the set
             }
