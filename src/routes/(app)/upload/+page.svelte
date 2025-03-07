@@ -2,7 +2,6 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
-
   // sort out duplicate key values unique constraint - lawfirmname key//
 
   const tableColumns = {
@@ -118,8 +117,12 @@
             tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
           } else {
             const tempRecord = { lawfirmname: lawfirmname };
-            tempRecord[column] = row[header]?.trim() || "";
-            tables[table].push(tempRecord);
+
+            // Only add lawfirmname to the table if there is data in other columns
+            if (row[header]?.trim()) {
+              tempRecord[column] = row[header]?.trim() || "";
+              tables[table].push(tempRecord);
+            }
           }
         }
       });
