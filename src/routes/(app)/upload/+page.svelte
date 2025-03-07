@@ -2,8 +2,6 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
-  // sort out duplicate key values unique constraint - lawfirmname key//
-
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -101,77 +99,73 @@
 
   async function handleDataInsert() {
     const tables = {
-        lawfirm:,
-        lawyerscontactprofiles:,
-        products:,
-        websites:,
+      lawfirm: [],
+      lawyerscontactprofiles: [],
+      products: [],
+      websites: [],
     };
 
     data.forEach((row) => {
-        const lawfirmname = row["lawfirmname"]?.trim() || "";
-        const rowTables = new Set(); // Track which tables have data in this row
+      const lawfirmname = row["lawfirmname"]?.trim() || "";
+      const rowTables = new Set(); // Track which tables have data in this row
 
-        columnMappings.forEach(({ header, table, column }) => {
-            if (table && column) {
-                if (column === "lawfirmname" && table === "lawfirm") {
-                    tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
-                } else {
-                    const tempRecord = {}; // Create an empty object
-                    tempRecord[column] = row[header]?.trim() || "";
-                    tables[table].push(tempRecord);
-                    rowTables.add(table); // Add table to the set
-                }
+      columnMappings.forEach(({ header, table, column }) => {
+        if (table && column) {
+          if (column === "lawfirmname" && table === "lawfirm") {
+            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
+          } else {
+            const tempRecord = { lawfirmname: lawfirmname };
+            tempRecord[column] = row[header]?.trim() || "";
+            if (Object.keys(tempRecord).length > 1) {
+              tables[table].push(tempRecord);
+              rowTables.add(table); // Add table to the set
             }
-        });
+          }
+        }
+      });
 
-        // Add lawfirmname only to the CURRENT ROW's entry in the table
-        rowTables.forEach((table) => {
-            if (table !== "lawfirm") {
-                // Find the index of the last added record for this table
-                const lastIndex = tables[table].length - 1; 
-                // Add lawfirmname to the last added record
-                if (lastIndex >= 0) { // Ensure the index is valid
-                    tables[table][lastIndex].lawfirmname = lawfirmname; 
-                }
-            }
-        });
+      // Add lawfirmname only to the CURRENT ROW's entry in the table
+      rowTables.forEach((table) => {
+        if (table !== "lawfirm") {
+          // Find the index of the last added record for this table
+          const lastIndex = tables[table].length - 1;
+          // Add lawfirmname to the last added record
+          if (lastIndex >= 0) {
+            // Ensure the index is valid
+            tables[table][lastIndex].lawfirmname = lawfirmname;
+          }
+        }
+      });
     });
 
-    try {
-        // First insert lawfirm table data
-        if (tables.lawfirm.length > 0) {
-            const uniqueLawfirms = [];
-            const seen = new Set();
-            tables.lawfirm.forEach((obj) => {
-                if (!seen.has(obj.lawfirmname)) {
-                    seen.add(obj.lawfirmname);
-                    uniqueLawfirms.push(obj);
-                }
-            });
-            const { error: lawfirmError } = await supabase.from("lawfirm").insert(uniqueLawfirms);
-            if (lawfirmError) {
-                console.error("Error inserting into lawfirm:", lawfirmError.message);
-                return; // Stop further insertions if lawfirm insert fails
-            } else {
-                console.log("Successfully inserted into lawfirm");
-            }
-        }
+    // Remove duplicates from the lawfirm table
+    const uniqueLawfirms = [];
+    const seenLawfirms = new Set();
+    tables.lawfirm.forEach((obj) => {
+      if (!seenLawfirms.has(obj.lawfirmname)) {
+        seenLawfirms.add(obj.lawfirmname);
+        uniqueLawfirms.push(obj);
+      }
+    });
+    tables.lawfirm = uniqueLawfirms;
 
-        // Then insert other tables
-        for (const table in tables) {
-            if (table !== "lawfirm" && tables[table].length > 0) {
-                const { error } = await supabase.from(table).insert(tables[table]);
-                if (error) {
-                    console.error(`Error inserting into ${table}:`, error.message);
-                } else {
-                    console.log(`Successfully inserted into ${table}`);
-                }
-            }
+    try {
+      for (const table in tables) {
+        if (tables[table].length > 0) {
+          const { error } = await supabase.from(table).upsert(tables[table], {
+            onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
+          });
+          if (error) {
+            console.error(`Error inserting into ${table}:`, error.message);
+          } else {
+            console.log(`Successfully inserted into ${table}`);
+          }
         }
+      }
     } catch (error) {
-        console.error("Error inserting data:", error.message);
+      console.error("Error inserting data:", error.message);
     }
-}
+  }
 </script>
 
 <div class="homeBanner">
@@ -203,8 +197,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
