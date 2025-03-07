@@ -97,53 +97,36 @@
     reader.readAsText(file);
   }
 
-  async function handleDataInsert() {
-    try {
-      const insertData = data.map((row) => {
-        const insertRow = {};
-        columnMappings.forEach((mapping) => {
-          if (mapping.table && mapping.column && row[mapping.header]) {
-            insertRow[mapping.column] = row[mapping.header];
-          }
-        });
-        return insertRow;
+async function handleDataInsert() {
+  try {
+    const mappedData = data.map((row) => {
+      const newRow = {};
+      columnMappings.forEach((mapping) => {
+        if (mapping.table && mapping.column) {
+          newRow[mapping.column] = row[mapping.header];
+        }
       });
+      return newRow;
+    });
 
-      const lawfirmNameMapping = columnMappings.find(
-        (mapping) => mapping.column === "lawfirmname"
+    for (const table of Object.keys(tableColumns)) {
+      const tableData = mappedData.filter((row) =>
+        Object.keys(row).some((key) => tableColumns[table].includes(key))
       );
 
-      if (!lawfirmNameMapping) {
-        alert("Lawfirm name mapping is required.");
-        return;
+      if (tableData.length > 0) {
+        const { data, error } = await supabase.from(table).insert(tableData);
+        if (error) throw error;
+        console.log(`Data inserted into ${table}:`, data);
       }
-
-      const lawfirmNameColumn = lawfirmNameMapping.header;
-
-      const filteredData = insertData.filter(
-        (row) => row[lawfirmNameMapping.column]
-      );
-
-      if (filteredData.length === 0) {
-        alert("No data to insert.");
-        return;
-      }
-
-      const { error } = await supabase
-        .from(lawfirmNameMapping.table)
-        .insert(filteredData);
-
-      if (error) {
-        throw error;
-      }
-
-      alert("Data inserted successfully.");
-    } catch (err) {
-      console.error("Error inserting data:", err.message);
-      alert("Error inserting data: " + err.message);
     }
-  } 
-  
+
+    alert("Data inserted successfully!");
+  } catch (err) {
+    console.error("Error inserting data:", err.message);
+    alert("Error inserting data: " + err.message);
+  }
+}
 </script>
 
 <div class="homeBanner">
