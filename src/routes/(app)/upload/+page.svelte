@@ -2,6 +2,7 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
+
   // sort out duplicate key values unique constraint - lawfirmname key//
 
   const tableColumns = {
@@ -125,68 +126,24 @@
     });
 
     try {
-      // Insert lawfirm entries first, ensuring no duplicates
       for (const table in tables) {
         if (table === "lawfirm") {
-          for (const lawfirm of tables[table]) {
-            const { data: existingLawfirm, error: checkError } = await supabase
-              .from("lawfirm")
-              .select("lawfirmname")
-              .eq("lawfirmname", lawfirm.lawfirmname)
-              .single();
-
-            if (checkError && checkError.code === "PGRST116") {
-              const { error: insertError } = await supabase
-                .from("lawfirm")
-                .insert([lawfirm]);
-
-              if (insertError) {
-                console.error(`Error inserting lawfirm:`, insertError.message);
-              } else {
-                console.log(`Lawfirm inserted:`, lawfirm.lawfirmname);
-              }
-            } else {
-              console.log(`Lawfirm already exists:`, lawfirm.lawfirmname);
+          const uniqueLawfirms = [];
+          const seen = new Set();
+          tables[table].forEach((obj) => {
+            if (!seen.has(obj.lawfirmname)) {
+              seen.add(obj.lawfirmname);
+              uniqueLawfirms.push(obj);
             }
-          }
+          });
+          tables[table] = uniqueLawfirms;
         }
-      }
-
-      // Now insert related tables, ensuring lawfirmname relationship
-      for (const table in tables) {
-        if (table !== "lawfirm" && tables[table].length > 0) {
-          for (const record of tables[table]) {
-            // Check if lawfirmname exists in lawfirm table before inserting into related table
-            const { data: lawfirmData, error: lawfirmError } = await supabase
-              .from("lawfirm")
-              .select("lawfirmname")
-              .eq("lawfirmname", record.lawfirmname)
-              .single();
-
-            if (lawfirmError) {
-              console.error(
-                `Error checking lawfirmname in lawfirm table:`,
-                lawfirmError.message,
-              );
-            } else if (!lawfirmData) {
-              console.error(
-                `No matching lawfirm found for:`,
-                record.lawfirmname,
-              );
-            } else {
-              const { error: insertError } = await supabase
-                .from(table)
-                .insert([record]);
-
-              if (insertError) {
-                console.error(
-                  `Error inserting into ${table}:`,
-                  insertError.message,
-                );
-              } else {
-                console.log(`Successfully inserted into ${table}`);
-              }
-            }
+        if (tables[table].length > 0) {
+          const { error } = await supabase.from(table).insert(tables[table]);
+          if (error) {
+            console.error(`Error inserting into ${table}:`, error.message);
+          } else {
+            console.log(`Successfully inserted into ${table}`);
           }
         }
       }
