@@ -2,6 +2,9 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
+
+  // sort out duplicate key values unique constraint - lawfirmname key//
+
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -93,6 +96,7 @@
         error: (err) => console.error("Error parsing CSV:", err),
       });
     };
+
     reader.readAsText(file);
   }
 
@@ -103,50 +107,44 @@
       products: [],
       websites: [],
     };
-    const uniqueLawfirms = new Set();
 
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
-      if (lawfirmname) uniqueLawfirms.add(lawfirmname);
-    });
+      const record = { lawfirmname };
 
-    try {
-      const existingLawfirmsRes = await supabase
-        .from("lawfirm")
-        .select("lawfirmname");
-      if (existingLawfirmsRes.error)
-        throw new Error(existingLawfirmsRes.error.message);
-
-      const existingLawfirms = new Set(
-        existingLawfirmsRes.data.map((l) => l.lawfirmname),
-      );
-      const newLawfirms = [...uniqueLawfirms]
-        .filter((l) => !existingLawfirms.has(l))
-        .map((lawfirmname) => ({ lawfirmname }));
-
-      if (newLawfirms.length > 0) {
-        const { error } = await supabase.from("lawfirm").insert(newLawfirms);
-        if (error)
-          throw new Error(`Error inserting law firms: ${error.message}`);
-      }
-
-      data.forEach((row) => {
-        const lawfirmname = row["lawfirmname"]?.trim() || "";
-        columnMappings.forEach(({ header, table, column }) => {
-          if (table && column) {
-            const tempRecord = { lawfirmname };
+      columnMappings.forEach(({ header, table, column }) => {
+        if (table && column) {
+          if (column === "lawfirmname" && table === "lawfirm") {
+            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
+          } else {
+            const tempRecord = { lawfirmname: lawfirmname };
             tempRecord[column] = row[header]?.trim() || "";
             tables[table].push(tempRecord);
           }
-        });
+        }
       });
+    });
 
+    try {
       for (const table in tables) {
+        if (table === "lawfirm") {
+          const uniqueLawfirms = [];
+          const seen = new Set();
+          tables[table].forEach((obj) => {
+            if (!seen.has(obj.lawfirmname)) {
+              seen.add(obj.lawfirmname);
+              uniqueLawfirms.push(obj);
+            }
+          });
+          tables[table] = uniqueLawfirms;
+        }
         if (tables[table].length > 0) {
           const { error } = await supabase.from(table).insert(tables[table]);
-          if (error)
+          if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
-          else console.log(`Successfully inserted into ${table}`);
+          } else {
+            console.log(`Successfully inserted into ${table}`);
+          }
         }
       }
     } catch (error) {
