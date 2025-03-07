@@ -98,64 +98,28 @@
   }
 
   async function handleDataInsert() {
-    const tables = {
-      lawfirm: [],
-      lawyerscontactprofiles: [],
-      products: [],
-      websites: [],
-    };
-
-    data.forEach((row) => {
-      const lawfirmname = row["lawfirmname"]?.trim() || "";
-      const rowTables = new Set(); // Track which tables have data in this row
-
-      columnMappings.forEach(({ header, table, column }) => {
-        if (table && column) {
-          if (column === "lawfirmname" && table === "lawfirm") {
-            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
-          } else {
-            const tempRecord = {};
-            tempRecord[column] = row[header]?.trim() || "";
-            if (column === "lawfirmname") {
-              tempRecord["lawfirmname"] = lawfirmname;
-            }
-            if (Object.keys(tempRecord).length > 0) {
-              tables[table].push(tempRecord);
-              rowTables.add(table); // Add table to the set
-            }
-          }
+    const insertData = data.map((row) => {
+      const insertRow = {};
+      columnMappings.forEach((mapping) => {
+        if (mapping.table && mapping.column) {
+          insertRow[mapping.column] = row[mapping.header];
         }
       });
+      return insertRow;
     });
 
-    // Remove duplicates from the lawfirm table
-    const uniqueLawfirms = [];
-    const seenLawfirms = new Set();
-    tables.lawfirm.forEach((obj) => {
-      if (!seenLawfirms.has(obj.lawfirmname)) {
-        seenLawfirms.add(obj.lawfirmname);
-        uniqueLawfirms.push(obj);
-      }
-    });
-    tables.lawfirm = uniqueLawfirms;
-
-    try {
-      for (const table in tables) {
-        if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table], {
-            onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
-          });
-          if (error) {
-            console.error(`Error inserting into ${table}:`, error.message);
-          } else {
-            console.log(`Successfully inserted into ${table}`);
-          }
-        }
-      }
-    } catch (error) {
+    const { data, error } = await supabase.from(columnMappings[0].table).insert(
+      insertData
+    );
+    if (error) {
       console.error("Error inserting data:", error.message);
+      alert("Error inserting data:", error.message);
+    } else {
+      console.log("Data inserted successfully:", data);
+      alert("Data inserted successfully.");
     }
   }
+  
 </script>
 
 <div class="homeBanner">
@@ -241,22 +205,12 @@
   }
 
   .mappingRow {
-    background-color: #6161ff;
-    color: white;
-    padding: 30px;
-  }
-
-  .mappingSection {
-    margin-top: 20px;
-  }
-
-  .mappingRow {
     margin-left: 5%;
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
-    width: 45%;
+    width: 90%;
     font-size: 16px;
     font-weight: 600;
   }
