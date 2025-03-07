@@ -1,7 +1,7 @@
 <script>
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
-
+  
   // sort out duplicate key values unique constraint - lawfirmname key//
 
   const tableColumns = {
@@ -109,59 +109,43 @@
 
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
-      if (!lawfirmname) return; // Skip empty lawfirmname entries
-
       const record = { lawfirmname };
 
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          if (table === "lawfirm") {
-            record[column] = row[header]?.trim() || "";
+          if (column === "lawfirmname" && table === "lawfirm") {
+            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
           } else {
-            const tempRecord = { lawfirmname };
+            const tempRecord = { lawfirmname: lawfirmname };
             tempRecord[column] = row[header]?.trim() || "";
             tables[table].push(tempRecord);
           }
         }
       });
-
-      tables.lawfirm.push(record);
     });
 
     try {
-      // Fetch existing lawfirms
-      const { data: existingLawfirms, error: fetchError } = await supabase
-        .from("lawfirm")
-        .select("lawfirmname");
-
-      if (fetchError) throw fetchError;
-
-      const existingNames = new Set(
-        existingLawfirms.map((lf) => lf.lawfirmname),
-      );
-
-      // Filter out duplicate lawfirmname before inserting
-      const newLawfirms = tables.lawfirm.filter(
-        (lf) => !existingNames.has(lf.lawfirmname),
-      );
-
-      if (newLawfirms.length > 0) {
-        const { error: insertError } = await supabase
-          .from("lawfirm")
-          .insert(newLawfirms);
-        if (insertError) throw insertError;
-      }
-
-      // Now insert dependent tables
-      for (const table of ["lawyerscontactprofiles", "products", "websites"]) {
+      for (const table in tables) {
+        if (table === "lawfirm") {
+          const uniqueLawfirms = [];
+          const seen = new Set();
+          tables[table].forEach((obj) => {
+            if (!seen.has(obj.lawfirmname)) {
+              seen.add(obj.lawfirmname);
+              uniqueLawfirms.push(obj);
+            }
+          });
+          tables[table] = uniqueLawfirms;
+        }
         if (tables[table].length > 0) {
           const { error } = await supabase.from(table).insert(tables[table]);
-          if (error)
+          if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
+          } else {
+            console.log(`Successfully inserted into ${table}`);
+          }
         }
       }
-
-      console.log("Data inserted successfully");
     } catch (error) {
       console.error("Error inserting data:", error.message);
     }
