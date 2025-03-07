@@ -2,9 +2,6 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
-
-  // sort out duplicate key values unique constraint - lawfirmname key//
-
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -126,24 +123,48 @@
     });
 
     try {
-      for (const table in tables) {
-        if (table === "lawfirm") {
-          const uniqueLawfirms = [];
-          const seen = new Set();
-          tables[table].forEach((obj) => {
-            if (!seen.has(obj.lawfirmname)) {
-              seen.add(obj.lawfirmname);
-              uniqueLawfirms.push(obj);
-            }
-          });
-          tables[table] = uniqueLawfirms;
+      // Insert lawfirmname only if it doesn't already exist
+      const uniqueLawfirms = [];
+      const seen = new Set();
+      tables.lawfirm.forEach((obj) => {
+        if (!seen.has(obj.lawfirmname)) {
+          seen.add(obj.lawfirmname);
+          uniqueLawfirms.push(obj);
         }
-        if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).insert(tables[table]);
-          if (error) {
-            console.error(`Error inserting into ${table}:`, error.message);
+      });
+
+      for (const lawfirm of uniqueLawfirms) {
+        const { data: existingLawfirm, error: lawfirmCheckError } = await supabase
+          .from("lawfirm")
+          .select("lawfirmname")
+          .eq("lawfirmname", lawfirm.lawfirmname)
+          .single();
+
+        if (!existingLawfirm && !lawfirmCheckError) {
+          const { error: insertLawfirmError } = await supabase
+            .from("lawfirm")
+            .insert([lawfirm]);
+
+          if (insertLawfirmError) {
+            console.error("Error inserting lawfirm:", insertLawfirmError.message);
           } else {
-            console.log(`Successfully inserted into ${table}`);
+            console.log(`Lawfirm inserted:`, lawfirm.lawfirmname);
+          }
+        } else {
+          console.log(`Lawfirm already exists:`, lawfirm.lawfirmname);
+        }
+      }
+
+      // Now insert other related tables (e.g., lawyerscontactprofiles, products, websites)
+      for (const table in tables) {
+        if (table !== "lawfirm" && tables[table].length > 0) {
+          for (const record of tables[table]) {
+            const { error } = await supabase.from(table).insert([record]);
+            if (error) {
+              console.error(`Error inserting into ${table}:`, error.message);
+            } else {
+              console.log(`Successfully inserted into ${table}`);
+            }
           }
         }
       }
