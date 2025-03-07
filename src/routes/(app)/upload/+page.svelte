@@ -98,27 +98,51 @@
   }
 
   async function handleDataInsert() {
-    const insertData = data.map((row) => {
-      const insertRow = {};
-      columnMappings.forEach((mapping) => {
-        if (mapping.table && mapping.column) {
-          insertRow[mapping.column] = row[mapping.header];
-        }
+    try {
+      const insertData = data.map((row) => {
+        const insertRow = {};
+        columnMappings.forEach((mapping) => {
+          if (mapping.table && mapping.column && row[mapping.header]) {
+            insertRow[mapping.column] = row[mapping.header];
+          }
+        });
+        return insertRow;
       });
-      return insertRow;
-    });
 
-    const { data, error } = await supabase.from(columnMappings[0].table).insert(
-      insertData
-    );
-    if (error) {
-      console.error("Error inserting data:", error.message);
-      alert("Error inserting data:", error.message);
-    } else {
-      console.log("Data inserted successfully:", data);
+      const lawfirmNameMapping = columnMappings.find(
+        (mapping) => mapping.column === "lawfirmname"
+      );
+
+      if (!lawfirmNameMapping) {
+        alert("Lawfirm name mapping is required.");
+        return;
+      }
+
+      const lawfirmNameColumn = lawfirmNameMapping.header;
+
+      const filteredData = insertData.filter(
+        (row) => row[lawfirmNameMapping.column]
+      );
+
+      if (filteredData.length === 0) {
+        alert("No data to insert.");
+        return;
+      }
+
+      const { error } = await supabase
+        .from(lawfirmNameMapping.table)
+        .insert(filteredData);
+
+      if (error) {
+        throw error;
+      }
+
       alert("Data inserted successfully.");
+    } catch (err) {
+      console.error("Error inserting data:", err.message);
+      alert("Error inserting data: " + err.message);
     }
-  }
+  } 
   
 </script>
 
