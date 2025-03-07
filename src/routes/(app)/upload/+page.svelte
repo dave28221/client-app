@@ -101,63 +101,72 @@
 
   async function handleDataInsert() {
     const tables = {
-      lawfirm: [],
-      lawyerscontactprofiles: [],
-      products: [],
-      websites: [],
+        lawfirm: [],
+        lawyerscontactprofiles: [],
+        products: [],
+        websites: [],
     };
 
     data.forEach((row) => {
-      const lawfirmname = row["lawfirmname"]?.trim() || "";
-      const rowTables = new Set(); // Track which tables have data in this row
+        const lawfirmname = row["lawfirmname"]?.trim() || "";
+        const rowTables = new Set(); // Track which tables have data in this row
 
-      columnMappings.forEach(({ header, table, column }) => {
-        if (table && column) {
-          if (column === "lawfirmname" && table === "lawfirm") {
-            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
-          } else {
-            const tempRecord = {}; // Create an empty object
-            tempRecord[column] = row[header]?.trim() || "";
-            tables[table].push(tempRecord);
-            rowTables.add(table); // Add table to the set
-          }
-        }
-      });
+        columnMappings.forEach(({ header, table, column }) => {
+            if (table && column) {
+                if (column === "lawfirmname" && table === "lawfirm") {
+                    tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
+                } else {
+                    const tempRecord = {}; // Create an empty object
+                    tempRecord[column] = row[header]?.trim() || "";
+                    tables[table].push(tempRecord);
+                    rowTables.add(table); // Add table to the set
+                }
+            }
+        });
 
-      // Add lawfirmname only if other data was added to the table
-      rowTables.forEach((table) => {
-        if (table !== "lawfirm") {
-          tables[table][tables[table].length - 1].lawfirmname = lawfirmname;
-        }
-      });
+        // Add lawfirmname only if other data was added to the table
+        rowTables.forEach((table) => {
+            if (table !== "lawfirm") {
+                tables[table][tables[table].length - 1].lawfirmname = lawfirmname;
+            }
+        });
     });
 
     try {
-      for (const table in tables) {
-        if (table === "lawfirm") {
-          const uniqueLawfirms = [];
-          const seen = new Set();
-          tables[table].forEach((obj) => {
-            if (!seen.has(obj.lawfirmname)) {
-              seen.add(obj.lawfirmname);
-              uniqueLawfirms.push(obj);
+        // First insert lawfirm table data
+        if (tables.lawfirm.length > 0) {
+            const uniqueLawfirms = [];
+            const seen = new Set();
+            tables.lawfirm.forEach((obj) => {
+                if (!seen.has(obj.lawfirmname)) {
+                    seen.add(obj.lawfirmname);
+                    uniqueLawfirms.push(obj);
+                }
+            });
+            const { error: lawfirmError } = await supabase.from("lawfirm").insert(uniqueLawfirms);
+            if (lawfirmError) {
+                console.error("Error inserting into lawfirm:", lawfirmError.message);
+                return; // Stop further insertions if lawfirm insert fails
+            } else {
+                console.log("Successfully inserted into lawfirm");
             }
-          });
-          tables[table] = uniqueLawfirms;
         }
-        if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).insert(tables[table]);
-          if (error) {
-            console.error(`Error inserting into ${table}:`, error.message);
-          } else {
-            console.log(`Successfully inserted into ${table}`);
-          }
+
+        // Then insert other tables
+        for (const table in tables) {
+            if (table !== "lawfirm" && tables[table].length > 0) {
+                const { error } = await supabase.from(table).insert(tables[table]);
+                if (error) {
+                    console.error(`Error inserting into ${table}:`, error.message);
+                } else {
+                    console.log(`Successfully inserted into ${table}`);
+                }
+            }
         }
-      }
     } catch (error) {
-      console.error("Error inserting data:", error.message);
+        console.error("Error inserting data:", error.message);
     }
-  }
+}
 </script>
 
 <div class="homeBanner">
