@@ -99,20 +99,16 @@
 
 async function handleDataInsert() {
   try {
-    const mappedData = data.map((row) => {
-      const newRow = {};
-      columnMappings.forEach((mapping) => {
-        if (mapping.table && mapping.column) {
-          newRow[mapping.column] = row[mapping.header];
-        }
-      });
-      return newRow;
-    });
-
     for (const table of Object.keys(tableColumns)) {
-      const tableData = mappedData.filter((row) =>
-        Object.keys(row).some((key) => tableColumns[table].includes(key))
-      );
+      const tableData = data.map((row) => {
+        const newRow = {};
+        columnMappings.forEach((mapping) => {
+          if (mapping.table === table && mapping.column) {
+            newRow[mapping.column] = row[mapping.header];
+          }
+        });
+        return newRow;
+      }).filter(row => Object.keys(row).length > 0);
 
       if (tableData.length > 0) {
         const { data, error } = await supabase.from(table).insert(tableData);
