@@ -2,7 +2,6 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
-
   // sort out duplicate key values unique constraint - lawfirmname key//
 
   const tableColumns = {
@@ -115,9 +114,9 @@
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
           if (column === "lawfirmname" && table === "lawfirm") {
-            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
+            tables.lawfirm.push({ lawfirmname });
           } else {
-            const tempRecord = { lawfirmname: lawfirmname };
+            const tempRecord = { lawfirmname };
             tempRecord[column] = row[header]?.trim() || "";
             tables[table].push(tempRecord);
           }
@@ -126,19 +125,33 @@
     });
 
     try {
-      for (const table in tables) {
-        if (table === "lawfirm") {
-          const uniqueLawfirms = [];
-          const seen = new Set();
-          tables[table].forEach((obj) => {
-            if (!seen.has(obj.lawfirmname)) {
-              seen.add(obj.lawfirmname);
-              uniqueLawfirms.push(obj);
-            }
-          });
-          tables[table] = uniqueLawfirms;
-        }
-        if (tables[table].length > 0) {
+      // Step 1: Get existing law firms
+      const { data: existingLawfirms, error: fetchError } = await supabase
+        .from("lawfirm")
+        .select("lawfirmname");
+
+      if (fetchError) throw fetchError;
+
+      const existingNames = new Set(
+        existingLawfirms.map((firm) => firm.lawfirmname.trim().toLowerCase()),
+      );
+
+      // Step 2: Insert only new law firms
+      const uniqueLawfirms = tables.lawfirm.filter(
+        (firm) => !existingNames.has(firm.lawfirmname.toLowerCase()),
+      );
+
+      if (uniqueLawfirms.length > 0) {
+        const { error: insertLawfirmError } = await supabase
+          .from("lawfirm")
+          .insert(uniqueLawfirms);
+        if (insertLawfirmError) throw insertLawfirmError;
+        console.log("Successfully inserted law firms.");
+      }
+
+      // Step 3: Insert related records
+      for (const table of Object.keys(tables)) {
+        if (table !== "lawfirm" && tables[table].length > 0) {
           const { error } = await supabase.from(table).insert(tables[table]);
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
