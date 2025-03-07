@@ -101,10 +101,10 @@
 
   async function handleDataInsert() {
     const tables = {
-        lawfirm: [],
-        lawyerscontactprofiles: [],
-        products: [],
-        websites: [],
+        lawfirm:,
+        lawyerscontactprofiles:,
+        products:,
+        websites:,
     };
 
     data.forEach((row) => {
@@ -124,10 +124,15 @@
             }
         });
 
-        // Add lawfirmname only if other data was added to the table
+        // Add lawfirmname only to the CURRENT ROW's entry in the table
         rowTables.forEach((table) => {
             if (table !== "lawfirm") {
-                tables[table][tables[table].length - 1].lawfirmname = lawfirmname;
+                // Find the index of the last added record for this table
+                const lastIndex = tables[table].length - 1; 
+                // Add lawfirmname to the last added record
+                if (lastIndex >= 0) { // Ensure the index is valid
+                    tables[table][lastIndex].lawfirmname = lawfirmname; 
+                }
             }
         });
     });
