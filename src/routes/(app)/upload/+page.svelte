@@ -2,6 +2,9 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
+
+  // sort out duplicate key values unique constraint - lawfirmname key//
+
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -136,10 +139,7 @@
           tables[table] = uniqueLawfirms;
         }
         if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table], {
-            onConflict:
-              table === "lawyerscontactprofiles" ? ["email"] : ["lawfirmname"],
-          });
+          const { error } = await supabase.from(table).insert(tables[table]);
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
           } else {
