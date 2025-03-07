@@ -114,25 +114,15 @@
           if (column === "lawfirmname" && table === "lawfirm") {
             tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
           } else {
-            const tempRecord = { lawfirmname: lawfirmname };
+            const tempRecord = {};
             tempRecord[column] = row[header]?.trim() || "";
-            if (Object.keys(tempRecord).length > 1) {
+            if (column === "lawfirmname") {
+              tempRecord["lawfirmname"] = lawfirmname;
+            }
+            if (Object.keys(tempRecord).length > 0) {
               tables[table].push(tempRecord);
               rowTables.add(table); // Add table to the set
             }
-          }
-        }
-      });
-
-      // Add lawfirmname only to the CURRENT ROW's entry in the table
-      rowTables.forEach((table) => {
-        if (table !== "lawfirm") {
-          // Find the index of the last added record for this table
-          const lastIndex = tables[table].length - 1;
-          // Add lawfirmname to the last added record
-          if (lastIndex >= 0) {
-            // Ensure the index is valid
-            tables[table][lastIndex].lawfirmname = lawfirmname;
           }
         }
       });
