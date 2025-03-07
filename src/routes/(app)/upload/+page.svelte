@@ -116,10 +116,10 @@
           } else {
             const tempRecord = {};
             tempRecord[column] = row[header]?.trim() || "";
+            if (column === "lawfirmname") {
+              tempRecord["lawfirmname"] = lawfirmname;
+            }
             if (Object.keys(tempRecord).length > 0) {
-              if (lawfirmname && table !== "lawfirm") {
-                tempRecord["lawfirmname"] = lawfirmname;
-              }
               tables[table].push(tempRecord);
               rowTables.add(table); // Add table to the set
             }
@@ -231,6 +231,16 @@
   .homeBanner {
     display: flex;
     justify-content: space-between;
+    background-color: #6161ff;
+    color: white;
+    padding: 30px;
+  }
+
+  .mappingSection {
+    margin-top: 20px;
+  }
+
+  .mappingRow {
     background-color: #6161ff;
     color: white;
     padding: 30px;
