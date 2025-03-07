@@ -2,6 +2,9 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
+
+  // sort out duplicate key values unique constraint - lawfirmname key//
+
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -116,31 +119,27 @@
           } else {
             const tempRecord = { lawfirmname: lawfirmname };
             tempRecord[column] = row[header]?.trim() || "";
-            if (Object.keys(tempRecord).length > 1) {
-              tables[table].push(tempRecord);
-            }
+            tables[table].push(tempRecord);
           }
         }
       });
     });
 
-    // Remove duplicates from the lawfirm table
-    const uniqueLawfirms = [];
-    const seenLawfirms = new Set();
-    tables.lawfirm.forEach((obj) => {
-      if (!seenLawfirms.has(obj.lawfirmname)) {
-        seenLawfirms.add(obj.lawfirmname);
-        uniqueLawfirms.push(obj);
-      }
-    });
-    tables.lawfirm = uniqueLawfirms;
-
     try {
       for (const table in tables) {
-        if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table], {
-            onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
+        if (table === "lawfirm") {
+          const uniqueLawfirms = [];
+          const seen = new Set();
+          tables[table].forEach((obj) => {
+            if (!seen.has(obj.lawfirmname)) {
+              seen.add(obj.lawfirmname);
+              uniqueLawfirms.push(obj);
+            }
           });
+          tables[table] = uniqueLawfirms;
+        }
+        if (tables[table].length > 0) {
+          const { error } = await supabase.from(table).insert(tables[table]);
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
           } else {
