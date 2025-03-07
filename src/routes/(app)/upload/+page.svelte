@@ -136,9 +136,10 @@
           tables[table] = uniqueLawfirms;
         }
         if (tables[table].length > 0) {
-          const { error } = await supabase
-            .from(table)
-            .upsert(tables[table], { onConflict: ["lawfirmname"] });
+          const { error } = await supabase.from(table).upsert(tables[table], {
+            onConflict:
+              table === "lawyerscontactprofiles" ? ["email"] : ["lawfirmname"],
+          });
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
           } else {
