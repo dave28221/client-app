@@ -2,6 +2,9 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
+
+  // sort out duplicate key values unique constraint - lawfirmname key//
+
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -123,39 +126,20 @@
     });
 
     try {
-      // Insert unique lawfirms (ignoring duplicates) into the 'lawfirm' table first
-      const uniqueLawfirms = [];
-      const seenLawfirms = new Set();
-      tables.lawfirm.forEach((obj) => {
-        if (!seenLawfirms.has(obj.lawfirmname)) {
-          seenLawfirms.add(obj.lawfirmname);
-          uniqueLawfirms.push(obj);
-        }
-      });
-
-      // Check if the lawfirm exists in the database and insert missing ones
-      for (const lawfirm of uniqueLawfirms) {
-        const { data: existingLawfirm, error: lawfirmError } = await supabase
-          .from("lawfirm")
-          .select("lawfirmname")
-          .eq("lawfirmname", lawfirm.lawfirmname)
-          .single();
-
-        if (!existingLawfirm) {
-          // If the lawfirm doesn't exist, insert it
-          const { error } = await supabase.from("lawfirm").insert([lawfirm]);
-          if (error) {
-            console.error(`Error inserting into lawfirm: ${error.message}`);
-          } else {
-            console.log(`Lawfirm inserted: ${lawfirm.lawfirmname}`);
-          }
-        }
-      }
-
-      // Insert data into the other tables
       for (const table in tables) {
+        if (table === "lawfirm") {
+          const uniqueLawfirms = [];
+          const seen = new Set();
+          tables[table].forEach((obj) => {
+            if (!seen.has(obj.lawfirmname)) {
+              seen.add(obj.lawfirmname);
+              uniqueLawfirms.push(obj);
+            }
+          });
+          tables[table] = uniqueLawfirms;
+        }
         if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table]);
+          const { error } = await supabase.from(table).insert(tables[table]);
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
           } else {
