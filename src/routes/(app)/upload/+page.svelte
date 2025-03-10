@@ -111,17 +111,25 @@
 
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          const tempRecord = {};
+          if (
+            !tables[table][
+              rowTables.has(table)
+                ? tables[table].length - 1
+                : tables[table].length
+            ]
+          ) {
+            tables[table].push({});
+          }
+
+          const tempRecord = tables[table][tables[table].length - 1];
+
           tempRecord[column] = row[header]?.trim() || "";
 
           if (column === "lawfirmname") {
             tempRecord["lawfirmname"] = lawfirmname;
           }
 
-          if (Object.keys(tempRecord).length > 0) {
-            tables[table].push(tempRecord);
-            rowTables.add(table);
-          }
+          rowTables.add(table);
         }
       });
     });
@@ -184,7 +192,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV</h1>
+  <h1 class="leftAlign">Uploadd CSV</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
