@@ -108,6 +108,11 @@
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
 
+      // Skip empty lawfirmname or rows without lawfirmname
+      if (!lawfirmname) {
+        return;
+      }
+
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
           const tempRecord = {};
@@ -136,9 +141,11 @@
     try {
       // Insert lawfirm data first
       if (tables.lawfirm.length > 0) {
-        const { error } = await supabase.from("lawfirm").upsert(tables.lawfirm, {
-          onConflict: ["lawfirmname"],
-        });
+        const { error } = await supabase
+          .from("lawfirm")
+          .upsert(tables.lawfirm, {
+            onConflict: ["lawfirmname"],
+          });
         if (error) {
           console.error(`Error inserting into lawfirm:`, error.message);
           return;
@@ -147,20 +154,46 @@
         }
       }
 
-      // Insert related data
+      // Check if lawfirmname exists before inserting related data
       for (const table in tables) {
         if (table !== "lawfirm" && tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table]);
-          if (error) {
-            console.error(`Error inserting into ${table}:`, error.message);
-          } else {
-            console.log(`Successfully inserted into ${table}`);
+          for (let row of tables[table]) {
+            const lawfirmnameExists = await checkLawfirmExists(row.lawfirmname);
+            if (!lawfirmnameExists) {
+              console.error(
+                `Lawfirm "${row.lawfirmname}" does not exist. Skipping related data insertion.`,
+              );
+              continue; // Skip the insertion for this row if lawfirm doesn't exist
+            }
+
+            const { error } = await supabase.from(table).upsert([row]);
+            if (error) {
+              console.error(`Error inserting into ${table}:`, error.message);
+            } else {
+              console.log(`Successfully inserted into ${table}`);
+            }
           }
         }
       }
     } catch (error) {
       console.error("Error inserting data:", error.message);
     }
+  }
+
+  // Helper function to check if the lawfirmname exists
+  async function checkLawfirmExists(lawfirmname) {
+    const { data, error } = await supabase
+      .from("lawfirm")
+      .select("lawfirmname")
+      .eq("lawfirmname", lawfirmname)
+      .single();
+
+    if (error) {
+      console.error("Error checking lawfirm existence:", error.message);
+      return false;
+    }
+
+    return data ? true : false;
   }
 </script>
 
@@ -193,7 +226,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
