@@ -107,28 +107,28 @@
 
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
-      const rowTables = new Set(); // Track which tables have data in this row
+      const rowTables = new Set();
 
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          if (column === "lawfirmname" && table === "lawfirm") {
-            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
-          } else {
-            const tempRecord = {};
-            tempRecord[column] = row[header]?.trim() || "";
-            if (column === "lawfirmname") {
-              tempRecord["lawfirmname"] = lawfirmname;
-            }
-            if (Object.keys(tempRecord).length > 0) {
-              tables[table].push(tempRecord);
-              rowTables.add(table); // Add table to the set
-            }
+          const tempRecord = {};
+          tempRecord[column] = row[header]?.trim() || "";
+
+          if (column === "lawfirmname" && table) {
+            tempRecord["lawfirmname"] = lawfirmname;
+          }
+
+          if (
+            Object.keys(tempRecord).length > 1 ||
+            (table === "lawfirm" && column === "lawfirmname")
+          ) {
+            tables[table].push(tempRecord);
+            rowTables.add(table);
           }
         }
       });
     });
 
-    // Remove duplicates from the lawfirm table
     const uniqueLawfirms = [];
     const seenLawfirms = new Set();
     tables.lawfirm.forEach((obj) => {
@@ -187,7 +187,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
