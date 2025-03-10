@@ -140,15 +140,43 @@
     tables.lawfirm = uniqueLawfirms;
 
     try {
-      for (const table in tables) {
-        if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table], {
-            onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
+      if (tables.lawfirm.length > 0) {
+        const { error } = await supabase
+          .from("lawfirm")
+          .upsert(tables.lawfirm, {
+            onConflict: ["lawfirmname"],
           });
-          if (error) {
-            console.error(`Error inserting into ${table}:`, error.message);
-          } else {
-            console.log(`Successfully inserted into ${table}`);
+        if (error) {
+          console.error("Error inserting into lawfirm:", error.message);
+          return;
+        }
+        console.log("Successfully inserted lawfirms");
+      }
+
+      const { data: existingLawfirms, error: fetchError } = await supabase
+        .from("lawfirm")
+        .select("lawfirmname");
+      if (fetchError) {
+        console.error("Error fetching lawfirms:", fetchError.message);
+        return;
+      }
+
+      const validLawfirms = new Set(
+        existingLawfirms.map((lf) => lf.lawfirmname),
+      );
+
+      for (const table in tables) {
+        if (table !== "lawfirm" && tables[table].length > 0) {
+          tables[table] = tables[table].filter((row) =>
+            validLawfirms.has(row.lawfirmname),
+          );
+          if (tables[table].length > 0) {
+            const { error } = await supabase.from(table).insert(tables[table]);
+            if (error) {
+              console.error(`Error inserting into ${table}:`, error.message);
+            } else {
+              console.log(`Successfully inserted into ${table}`);
+            }
           }
         }
       }
