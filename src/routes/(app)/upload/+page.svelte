@@ -113,15 +113,12 @@
         if (table && column) {
           const tempRecord = {};
           tempRecord[column] = row[header]?.trim() || "";
-
+          
           if (column === "lawfirmname" && table) {
             tempRecord["lawfirmname"] = lawfirmname;
           }
-
-          if (
-            Object.keys(tempRecord).length > 1 ||
-            (table === "lawfirm" && column === "lawfirmname")
-          ) {
+          
+          if (Object.keys(tempRecord).length > 1 || (table === "lawfirm" && column === "lawfirmname")) {
             tables[table].push(tempRecord);
             rowTables.add(table);
           }
@@ -187,10 +184,10 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
+
 
 <style>
   .searchAndAdd {
