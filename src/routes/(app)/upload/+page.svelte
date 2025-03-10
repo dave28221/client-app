@@ -105,10 +105,7 @@
       websites: [],
     };
 
-    // Iterate over each row in the CSV data
     data.forEach((row) => {
-      const lawfirmname = row["lawfirmname"]?.trim() || "";
-
       const rowData = {
         lawfirm: {},
         lawyerscontactprofiles: {},
@@ -116,28 +113,18 @@
         websites: {},
       };
 
-      // Map CSV data to table columns
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
           rowData[table][column] = row[header]?.trim() || "";
         }
       });
-
-      // Ensure `lawfirmname` is included in all non-lawfirm tables
-      Object.keys(rowData).forEach((table) => {
-        if (table !== "lawfirm" && Object.keys(rowData[table]).length > 0) {
-          rowData[table]["lawfirmname"] = lawfirmname;
-        }
-      });
-
       // Push the row to the corresponding table if it has data
-      Object.keys(rowData).forEach((table) => {
-        if (Object.keys(rowData[table]).length > 0) {
-          tables[table].push(rowData[table]);
+      Object.keys(rowData).forEach((tableKey) => {
+        if(Object.keys(rowData[tableKey]).length > 0){
+          tables[tableKey].push(rowData[tableKey]);
         }
       });
     });
-
     // Deduplicate lawfirm records
     const uniqueLawfirms = [];
     const seenLawfirms = new Set();
@@ -150,55 +137,92 @@
     tables.lawfirm = uniqueLawfirms;
 
     try {
-      // Insert lawfirm data into the lawfirm table
+      // Insert lawfirm data first
       if (tables.lawfirm.length > 0) {
         const { error } = await supabase
           .from("lawfirm")
-          .upsert(tables.lawfirm, {
-            onConflict: ["lawfirmname"],
-          });
+          .upsert(tables.lawfirm, { onConflict: ["lawfirmname"] });
         if (error) {
-          console.error("Error inserting into lawfirm:", error.message);
+          console.error("Error inserting lawfirms:", error.message);
+          alert(`Error inserting lawfirms: ${error.message}`);
           return;
         }
         console.log("Successfully inserted lawfirms");
       }
 
-      // Fetch existing lawfirms to validate foreign keys
+      // Fetch valid lawfirm names
       const { data: existingLawfirms, error: fetchError } = await supabase
         .from("lawfirm")
         .select("lawfirmname");
+
       if (fetchError) {
         console.error("Error fetching lawfirms:", fetchError.message);
+        alert(`Error fetching lawfirms: ${fetchError.message}`);
         return;
       }
 
       const validLawfirms = new Set(
-        existingLawfirms.map((lf) => lf.lawfirmname),
+        existingLawfirms.map((lf) => lf.lawfirmname)
       );
 
-      // Insert data into related tables only if lawfirmname exists
+      // Insert data into related tables, validating lawfirmname
       for (const table in tables) {
         if (table !== "lawfirm" && tables[table].length > 0) {
-          // Filter out rows that don't have a valid lawfirmname
-          tables[table] = tables[table].filter((row) =>
-            validLawfirms.has(row.lawfirmname),
+          const filteredRows = tables[table].filter((row) =>
+            validLawfirms.has(row.lawfirmname)
           );
-          if (tables[table].length > 0) {
-            const { error } = await supabase.from(table).insert(tables[table]);
+
+          if (filteredRows.length > 0) {
+            const { error } = await supabase.from(table).insert(filteredRows);
             if (error) {
               console.error(`Error inserting into ${table}:`, error.message);
+              alert(`Error inserting into ${table}: ${error.message}`);
             } else {
               console.log(`Successfully inserted into ${table}`);
+              alert(`Successfully inserted into ${table}`);
             }
           }
         }
       }
     } catch (error) {
       console.error("Error inserting data:", error.message);
+      alert(`Error inserting data: ${error.message}`);
     }
   }
 </script>
+
+<div class="homeBanner">
+  <h1 class="leftAlign">Upload CSV</h1>
+  <div class="searchAndAdd">
+    <input type="file" accept=".csv" on:change={handleFileChange} />
+    <button on:click={handleFileUpload}>Import CSV</button>
+  </div>
+</div>
+
+{#if headers.length}
+  <div class="mappingSection">
+    {#each columnMappings as mapping, index}
+      <div class="mappingRow">
+        <label for="table-{index}">{mapping.header}</label>
+        <select id="table-{index}" bind:value={mapping.table}>
+          <option value="">Select table</option>
+          {#each Object.keys(tableColumns) as table}
+            <option value={table}>{table}</option>
+          {/each}
+        </select>
+        {#if mapping.table && tableColumns[mapping.table]}
+          <select id="column-{index}" bind:value={mapping.column}>
+            <option value="">Select column</option>
+            {#each tableColumns[mapping.table] as column}
+              <option value={column}>{column}</option>
+            {/each}
+          </select>
+        {/if}
+      </div>
+    {/each}
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+  </div>
+{/if}
 
 <div class="homeBanner">
   <h1 class="leftAlign">Uploadddd CSV test</h1>
