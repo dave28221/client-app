@@ -2,6 +2,8 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
+  //sort out two entries - maybe sql //
+
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -89,10 +91,6 @@
             table: "",
             column: "",
           }));
-
-          // Log the parsed data to check if it's correct
-          console.log("Parsed headers:", headers);
-          console.log("Parsed data:", data);
         },
         error: (err) => console.error("Error parsing CSV:", err),
       });
@@ -111,29 +109,27 @@
 
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
-
-      // Skip empty lawfirmname or rows without lawfirmname
-      if (!lawfirmname) {
-        return;
-      }
+      const rowTables = new Set(); // Track which tables have data in this row
 
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          const tempRecord = {};
-          tempRecord[column] = row[header]?.trim() || "";
-          if (column !== "lawfirmname") {
-            tempRecord["lawfirmname"] = lawfirmname;
-          }
-          if (Object.keys(tempRecord).length > 1) {
-            tables[table].push(tempRecord);
+          if (column === "lawfirmname" && table === "lawfirm") {
+            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
+          } else {
+            const tempRecord = {};
+            tempRecord[column] = row[header]?.trim() || "";
+            if (column === "lawfirmname") {
+              tempRecord["lawfirmname"] = lawfirmname;
+            }
+            if (Object.keys(tempRecord).length > 0) {
+              tables[table].push(tempRecord);
+              rowTables.add(table); // Add table to the set
+            }
           }
         }
       });
     });
 
-    console.log("Tables ready for insertion:", tables);  // Log this line
-
-    // Remove duplicates from the lawfirm table
     const uniqueLawfirms = [];
     const seenLawfirms = new Set();
     tables.lawfirm.forEach((obj) => {
@@ -145,41 +141,15 @@
     tables.lawfirm = uniqueLawfirms;
 
     try {
-      // Insert lawfirm data first
-      if (tables.lawfirm.length > 0) {
-        console.log("Inserting into lawfirm table...");
-        const { error } = await supabase
-          .from("lawfirm")
-          .upsert(tables.lawfirm, {
-            onConflict: ["lawfirmname"],
-          });
-        if (error) {
-          console.error(`Error inserting into lawfirm:`, error.message);
-          return;
-        } else {
-          console.log(`Successfully inserted into lawfirm`);
-        }
-      }
-
-      // Check if lawfirmname exists before inserting related data
       for (const table in tables) {
-        if (table !== "lawfirm" && tables[table].length > 0) {
-          for (let row of tables[table]) {
-            const lawfirmnameExists = await checkLawfirmExists(row.lawfirmname);
-            if (!lawfirmnameExists) {
-              console.error(
-                `Lawfirm "${row.lawfirmname}" does not exist. Skipping related data insertion.`,
-              );
-              continue; // Skip the insertion for this row if lawfirm doesn't exist
-            }
-
-            console.log(`Inserting into ${table}...`);
-            const { error } = await supabase.from(table).upsert([row]);
-            if (error) {
-              console.error(`Error inserting into ${table}:`, error.message);
-            } else {
-              console.log(`Successfully inserted into ${table}`);
-            }
+        if (tables[table].length > 0) {
+          const { error } = await supabase.from(table).upsert(tables[table], {
+            onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
+          });
+          if (error) {
+            console.error(`Error inserting into ${table}:`, error.message);
+          } else {
+            console.log(`Successfully inserted into ${table}`);
           }
         }
       }
@@ -187,26 +157,10 @@
       console.error("Error inserting data:", error.message);
     }
   }
-
-  // Helper function to check if the lawfirmname exists
-  async function checkLawfirmExists(lawfirmname) {
-    const { data, error } = await supabase
-      .from("lawfirm")
-      .select("lawfirmname")
-      .eq("lawfirmname", lawfirmname)
-      .single();
-
-    if (error) {
-      console.error("Error checking lawfirm existence:", error.message);
-      return false;
-    }
-
-    return data ? true : false;
-  }
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV</h1>
+  <h1 class="leftAlign">Upload CSV Final Test</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
@@ -234,7 +188,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
@@ -271,6 +226,16 @@
   }
 
   button:hover {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 150px;
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
     background-color: #292828;
     color: #ffffff;
   }
@@ -293,7 +258,7 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
-    width: 90%;
+    width: 45%;
     font-size: 16px;
     font-weight: 600;
   }
