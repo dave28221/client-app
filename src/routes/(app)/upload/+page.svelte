@@ -105,6 +105,7 @@
       websites: [],
     };
 
+    // Iterate over each row in the CSV data
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
 
@@ -115,20 +116,21 @@
         websites: {},
       };
 
+      // Map CSV data to table columns
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
           rowData[table][column] = row[header]?.trim() || "";
         }
       });
 
-      // Ensure lawfirmname is included in non-lawfirm tables
+      // Ensure `lawfirmname` is included in all non-lawfirm tables
       Object.keys(rowData).forEach((table) => {
         if (table !== "lawfirm" && Object.keys(rowData[table]).length > 0) {
           rowData[table]["lawfirmname"] = lawfirmname;
         }
       });
 
-      // Push only non-empty objects
+      // Push the row to the corresponding table if it has data
       Object.keys(rowData).forEach((table) => {
         if (Object.keys(rowData[table]).length > 0) {
           tables[table].push(rowData[table]);
@@ -148,7 +150,7 @@
     tables.lawfirm = uniqueLawfirms;
 
     try {
-      // Insert lawfirm data
+      // Insert lawfirm data into the lawfirm table
       if (tables.lawfirm.length > 0) {
         const { error } = await supabase
           .from("lawfirm")
@@ -175,9 +177,10 @@
         existingLawfirms.map((lf) => lf.lawfirmname),
       );
 
-      // Insert related tables only if lawfirmname exists
+      // Insert data into related tables only if lawfirmname exists
       for (const table in tables) {
         if (table !== "lawfirm" && tables[table].length > 0) {
+          // Filter out rows that don't have a valid lawfirmname
           tables[table] = tables[table].filter((row) =>
             validLawfirms.has(row.lawfirmname),
           );
@@ -198,7 +201,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Uploadddd CSV</h1>
+  <h1 class="leftAlign">Uploadddd CSV test</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
