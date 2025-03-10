@@ -134,11 +134,23 @@
     tables.lawfirm = uniqueLawfirms;
 
     try {
+      // Insert lawfirm data first
+      if (tables.lawfirm.length > 0) {
+        const { error } = await supabase.from("lawfirm").upsert(tables.lawfirm, {
+          onConflict: ["lawfirmname"],
+        });
+        if (error) {
+          console.error(`Error inserting into lawfirm:`, error.message);
+          return;
+        } else {
+          console.log(`Successfully inserted into lawfirm`);
+        }
+      }
+
+      // Insert related data
       for (const table in tables) {
-        if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table], {
-            onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
-          });
+        if (table !== "lawfirm" && tables[table].length > 0) {
+          const { error } = await supabase.from(table).upsert(tables[table]);
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
           } else {
