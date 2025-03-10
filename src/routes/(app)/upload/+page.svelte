@@ -89,6 +89,10 @@
             table: "",
             column: "",
           }));
+
+          // Log the parsed data to check if it's correct
+          console.log("Parsed headers:", headers);
+          console.log("Parsed data:", data);
         },
         error: (err) => console.error("Error parsing CSV:", err),
       });
@@ -127,6 +131,8 @@
       });
     });
 
+    console.log("Tables ready for insertion:", tables);  // Log this line
+
     // Remove duplicates from the lawfirm table
     const uniqueLawfirms = [];
     const seenLawfirms = new Set();
@@ -141,6 +147,7 @@
     try {
       // Insert lawfirm data first
       if (tables.lawfirm.length > 0) {
+        console.log("Inserting into lawfirm table...");
         const { error } = await supabase
           .from("lawfirm")
           .upsert(tables.lawfirm, {
@@ -166,6 +173,7 @@
               continue; // Skip the insertion for this row if lawfirm doesn't exist
             }
 
+            console.log(`Inserting into ${table}...`);
             const { error } = await supabase.from(table).upsert([row]);
             if (error) {
               console.error(`Error inserting into ${table}:`, error.message);
@@ -226,8 +234,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
