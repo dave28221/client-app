@@ -114,14 +114,11 @@
           const tempRecord = {};
           tempRecord[column] = row[header]?.trim() || "";
 
-          if (column === "lawfirmname" && table) {
+          if (column === "lawfirmname") {
             tempRecord["lawfirmname"] = lawfirmname;
           }
 
-          if (
-            Object.keys(tempRecord).length > 1 ||
-            (table === "lawfirm" && column === "lawfirmname")
-          ) {
+          if (Object.keys(tempRecord).length > 0) {
             tables[table].push(tempRecord);
             rowTables.add(table);
           }
