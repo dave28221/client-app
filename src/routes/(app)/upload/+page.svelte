@@ -108,18 +108,35 @@
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
 
+      const rowData = {
+        lawfirm: {},
+        lawyerscontactprofiles: {},
+        products: {},
+        websites: {},
+      };
+
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          const tempRecord = {};
-          tempRecord[column] = row[header]?.trim() || "";
-          if (table !== "lawfirm") {
-            tempRecord["lawfirmname"] = lawfirmname;
-          }
-          tables[table].push(tempRecord);
+          rowData[table][column] = row[header]?.trim() || "";
+        }
+      });
+
+      // Ensure lawfirmname is included in non-lawfirm tables
+      Object.keys(rowData).forEach((table) => {
+        if (table !== "lawfirm" && Object.keys(rowData[table]).length > 0) {
+          rowData[table]["lawfirmname"] = lawfirmname;
+        }
+      });
+
+      // Push only non-empty objects
+      Object.keys(rowData).forEach((table) => {
+        if (Object.keys(rowData[table]).length > 0) {
+          tables[table].push(rowData[table]);
         }
       });
     });
 
+    // Deduplicate lawfirm records
     const uniqueLawfirms = [];
     const seenLawfirms = new Set();
     tables.lawfirm.forEach((obj) => {
@@ -131,10 +148,13 @@
     tables.lawfirm = uniqueLawfirms;
 
     try {
+      // Insert lawfirm data
       if (tables.lawfirm.length > 0) {
-        const { error } = await supabase.from("lawfirm").upsert(tables.lawfirm, {
-          onConflict: ["lawfirmname"],
-        });
+        const { error } = await supabase
+          .from("lawfirm")
+          .upsert(tables.lawfirm, {
+            onConflict: ["lawfirmname"],
+          });
         if (error) {
           console.error("Error inserting into lawfirm:", error.message);
           return;
@@ -142,17 +162,25 @@
         console.log("Successfully inserted lawfirms");
       }
 
-      const { data: existingLawfirms, error: fetchError } = await supabase.from("lawfirm").select("lawfirmname");
+      // Fetch existing lawfirms to validate foreign keys
+      const { data: existingLawfirms, error: fetchError } = await supabase
+        .from("lawfirm")
+        .select("lawfirmname");
       if (fetchError) {
         console.error("Error fetching lawfirms:", fetchError.message);
         return;
       }
 
-      const validLawfirms = new Set(existingLawfirms.map((lf) => lf.lawfirmname));
+      const validLawfirms = new Set(
+        existingLawfirms.map((lf) => lf.lawfirmname),
+      );
 
+      // Insert related tables only if lawfirmname exists
       for (const table in tables) {
         if (table !== "lawfirm" && tables[table].length > 0) {
-          tables[table] = tables[table].filter((row) => validLawfirms.has(row.lawfirmname));
+          tables[table] = tables[table].filter((row) =>
+            validLawfirms.has(row.lawfirmname),
+          );
           if (tables[table].length > 0) {
             const { error } = await supabase.from(table).insert(tables[table]);
             if (error) {
@@ -169,9 +197,8 @@
   }
 </script>
 
-
 <div class="homeBanner">
-  <h1 class="leftAlign">Uploadddd t CSV</h1>
+  <h1 class="leftAlign">Uploadddd CSV</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
