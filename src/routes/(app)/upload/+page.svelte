@@ -1,4 +1,4 @@
-<script>
+=<script>
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
@@ -49,35 +49,52 @@
     websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
   };
 
-  let file = null;
-  let headers = [],
+  let file,
+    headers = [],
     data = [],
     columnMappings = [];
 
+  $: headers = [...headers];
+  $: data = [...data];
+  $: columnMappings = [...columnMappings];
+
   async function handleFileChange(event) {
-    file = event.target.files[0];
-    if (!file) return alert("No file selected.");
-    console.log("File selected:", file);
+    try {
+      file = event.target.files[0];
+      if (!file) throw new Error("No file selected.");
+      console.log("File selected:", file);
+    } catch (err) {
+      console.error("File selection error:", err.message);
+      alert(err.message);
+    }
   }
 
   async function handleFileUpload() {
-    if (!file) return alert("Please select a file to upload.");
+    if (!file) {
+      alert("Please select a file to upload.");
+      return;
+    }
 
-    const csvData = await file.text();
-    Papa.parse(csvData, {
-      header: true,
-      skipEmptyLines: true,
-      complete: ({ data: parsedData, meta }) => {
-        headers = meta.fields;
-        data = parsedData;
-        columnMappings = headers.map((header) => ({
-          header,
-          table: "",
-          column: "",
-        }));
-      },
-      error: (err) => console.error("Error parsing CSV:", err),
-    });
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const csvData = event.target.result;
+      Papa.parse(csvData, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          headers = results.meta.fields;
+          data = results.data;
+          columnMappings = headers.map((header) => ({
+            header,
+            table: "",
+            column: "",
+          }));
+        },
+        error: (err) => console.error("Error parsing CSV:", err),
+      });
+    };
+
+    reader.readAsText(file);
   }
 
   async function handleDataInsert() {
@@ -87,38 +104,58 @@
       products: [],
       websites: [],
     };
-    const seenLawfirms = new Set();
 
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
+
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          const value = row[header]?.trim() || "";
-          const record = { [column]: value };
-          if (column === "lawfirmname") record["lawfirmname"] = lawfirmname;
-          if (
-            table === "lawfirm" &&
-            column === "lawfirmname" &&
-            !seenLawfirms.has(lawfirmname)
-          ) {
-            seenLawfirms.add(lawfirmname);
-            tables.lawfirm.push(record);
-          } else if (Object.keys(record).length) {
-            tables[table].push(record);
+          const tempRecord = {};
+          tempRecord[column] = row[header]?.trim() || "";
+          if (column !== "lawfirmname") {
+            tempRecord["lawfirmname"] = lawfirmname;
+          }
+          if (Object.keys(tempRecord).length > 1) {
+            tables[table].push(tempRecord);
           }
         }
       });
     });
 
+    // Remove duplicates from the lawfirm table
+    const uniqueLawfirms = [];
+    const seenLawfirms = new Set();
+    tables.lawfirm.forEach((obj) => {
+      if (!seenLawfirms.has(obj.lawfirmname)) {
+        seenLawfirms.add(obj.lawfirmname);
+        uniqueLawfirms.push(obj);
+      }
+    });
+    tables.lawfirm = uniqueLawfirms;
+
     try {
-      for (const [table, records] of Object.entries(tables)) {
-        if (records.length) {
-          const { error } = await supabase.from(table).upsert(records, {
-            onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
-          });
-          if (error)
+      // Insert lawfirm data first
+      if (tables.lawfirm.length > 0) {
+        const { error } = await supabase.from("lawfirm").upsert(tables.lawfirm, {
+          onConflict: ["lawfirmname"],
+        });
+        if (error) {
+          console.error(`Error inserting into lawfirm:`, error.message);
+          return;
+        } else {
+          console.log(`Successfully inserted into lawfirm`);
+        }
+      }
+
+      // Insert related data
+      for (const table in tables) {
+        if (table !== "lawfirm" && tables[table].length > 0) {
+          const { error } = await supabase.from(table).upsert(tables[table]);
+          if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
-          else console.log(`Successfully inserted into ${table}`);
+          } else {
+            console.log(`Successfully inserted into ${table}`);
+          }
         }
       }
     } catch (error) {
@@ -128,7 +165,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Test</h1>
+  <h1 class="leftAlign">Upload CSV</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
@@ -156,8 +193,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
@@ -194,16 +230,6 @@
   }
 
   button:hover {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    width: 150px;
-    transition: background-color 0.3s ease;
-  }
-
-  button:hover {
     background-color: #292828;
     color: #ffffff;
   }
@@ -226,7 +252,7 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
-    width: 45%;
+    width: 90%;
     font-size: 16px;
     font-weight: 600;
   }
