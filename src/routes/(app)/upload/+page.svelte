@@ -84,6 +84,8 @@
         complete: (results) => {
           headers = results.meta.fields;
           data = results.data;
+          console.log("Parsed Headers:", headers);
+          console.log("Parsed Data:", data);
           columnMappings = headers.map((header) => ({
             header,
             table: "",
@@ -98,63 +100,70 @@
   }
 
   async function handleDataInsert() {
-  const tables = {
-    lawfirm: [], // Add lawfirm table processing
-    lawyerscontactprofiles: [],
-    products: [],
-    websites: [],
-  };
+    const tables = {
+      lawfirm: [],
+      lawyerscontactprofiles: [],
+      products: [],
+      websites: [],
+    };
 
-  data.forEach((row) => {
-    const lawfirmname = row["lawfirmname"]?.trim() || "";
-
-    // Collect lawfirm data
-    const lawfirmRecord = {};
-    tableColumns.lawfirm.forEach((column) => {
-      if (row[column] !== undefined) {
-        lawfirmRecord[column] = row[column]?.trim() || "";
+    data.forEach((row) => {
+      console.log("Processing row:", row);
+      const lawfirmname = row["lawfirmname"]?.trim() || "";
+      if (!lawfirmname) {
+        console.warn("Skipping row due to missing lawfirmname:", row);
+        return;
       }
+
+      // Collect lawfirm data
+      const lawfirmRecord = {};
+      tableColumns.lawfirm.forEach((column) => {
+        if (row[column] !== undefined) {
+          lawfirmRecord[column] = row[column]?.trim() || "";
+        }
+      });
+
+      console.log("Lawfirm Record:", lawfirmRecord);
+      if (lawfirmname && Object.keys(lawfirmRecord).length > 0) {
+        tables.lawfirm.push(lawfirmRecord);
+      }
+
+      // Collect other table data
+      columnMappings.forEach(({ header, table, column }) => {
+        if (table && column && table !== "lawfirm") {
+          const tempRecord = {};
+          tempRecord[column] = row[header]?.trim() || "";
+          tempRecord["lawfirmname"] = lawfirmname; // Ensure lawfirmname is added
+          if (Object.keys(tempRecord).length > 0) {
+            tables[table].push(tempRecord);
+          }
+        }
+      });
     });
 
-    if (Object.keys(lawfirmRecord).length > 0) {
-      tables.lawfirm.push(lawfirmRecord);
-    }
+    // Log data before insertion
+    console.log("Data to be inserted:", tables);
 
-    // Collect other table data
-    columnMappings.forEach(({ header, table, column }) => {
-      if (table && column && table !== "lawfirm") {
-        const tempRecord = {};
-        tempRecord[column] = row[header]?.trim() || "";
-        tempRecord["lawfirmname"] = lawfirmname; // Ensure lawfirmname is added
-        if (Object.keys(tempRecord).length > 0) {
-          tables[table].push(tempRecord);
+    try {
+      for (const table in tables) {
+        if (tables[table].length > 0) {
+          const { error } = await supabase.from(table).upsert(tables[table]);
+          if (error) {
+            console.error(`Error inserting into ${table}:`, error.message);
+          } else {
+            console.log(`Successfully inserted into ${table}`);
+          }
         }
       }
-    });
-  });
-
-  // Log data before insertion
-  console.log("Data to be inserted:", tables);
-
-  try {
-    for (const table in tables) {
-      if (tables[table].length > 0) {
-        const { error } = await supabase.from(table).upsert(tables[table]);
-        if (error) {
-          console.error(`Error inserting into ${table}:`, error.message);
-        } else {
-          console.log(`Successfully inserted into ${table}`);
-        }
-      }
+    } catch (error) {
+      console.error("Error inserting data:", error.message);
     }
-  } catch (error) {
-    console.error("Error inserting data:", error.message);
   }
-}
 </script>
 
+
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Tes 6</h1>
+  <h1 class="leftAlign">Upload CSV Final Tes 7</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
