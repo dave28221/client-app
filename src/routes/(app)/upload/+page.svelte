@@ -147,7 +147,9 @@
     }
 
     // Step 3: Validate lawfirmname values
-    const validLawfirmnames = new Set(tables.lawfirm.map((firm) => firm.lawfirmname));
+    const validLawfirmnames = new Set(
+      tables.lawfirm.map((firm) => firm.lawfirmname),
+    );
 
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
@@ -179,7 +181,10 @@
     });
 
     // Log data to be inserted into other tables
-    console.log("Lawyerscontactprofiles data to be inserted:", tables.lawyerscontactprofiles);
+    console.log(
+      "Lawyerscontactprofiles data to be inserted:",
+      tables.lawyerscontactprofiles,
+    );
     console.log("Products data to be inserted:", tables.products);
     console.log("Websites data to be inserted:", tables.websites);
 
@@ -231,7 +236,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
