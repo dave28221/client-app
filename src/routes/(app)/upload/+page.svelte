@@ -2,7 +2,6 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
-
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -50,52 +49,35 @@
     websites: ["url", "dnsinfo", "theme", "email", "lawfirmname"],
   };
 
-  let file,
-    headers = [],
+  let file = null;
+  let headers = [],
     data = [],
     columnMappings = [];
 
-  $: headers = [...headers];
-  $: data = [...data];
-  $: columnMappings = [...columnMappings];
-
   async function handleFileChange(event) {
-    try {
-      file = event.target.files[0];
-      if (!file) throw new Error("No file selected.");
-      console.log("File selected:", file);
-    } catch (err) {
-      console.error("File selection error:", err.message);
-      alert(err.message);
-    }
+    file = event.target.files[0];
+    if (!file) return alert("No file selected.");
+    console.log("File selected:", file);
   }
 
   async function handleFileUpload() {
-    if (!file) {
-      alert("Please select a file to upload.");
-      return;
-    }
+    if (!file) return alert("Please select a file to upload.");
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const csvData = event.target.result;
-      Papa.parse(csvData, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          headers = results.meta.fields;
-          data = results.data;
-          columnMappings = headers.map((header) => ({
-            header,
-            table: "",
-            column: "",
-          }));
-        },
-        error: (err) => console.error("Error parsing CSV:", err),
-      });
-    };
-
-    reader.readAsText(file);
+    const csvData = await file.text();
+    Papa.parse(csvData, {
+      header: true,
+      skipEmptyLines: true,
+      complete: ({ data: parsedData, meta }) => {
+        headers = meta.fields;
+        data = parsedData;
+        columnMappings = headers.map((header) => ({
+          header,
+          table: "",
+          column: "",
+        }));
+      },
+      error: (err) => console.error("Error parsing CSV:", err),
+    });
   }
 
   async function handleDataInsert() {
@@ -105,51 +87,38 @@
       products: [],
       websites: [],
     };
+    const seenLawfirms = new Set();
 
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
-      const rowTables = new Set(); 
-
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          if (column === "lawfirmname" && table === "lawfirm") {
-            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
-          } else {
-            const tempRecord = {};
-            tempRecord[column] = row[header]?.trim() || "";
-            if (column === "lawfirmname") {
-              tempRecord["lawfirmname"] = lawfirmname;
-            }
-            if (Object.keys(tempRecord).length > 0) {
-              tables[table].push(tempRecord);
-              rowTables.add(table); 
-            }
+          const value = row[header]?.trim() || "";
+          const record = { [column]: value };
+          if (column === "lawfirmname") record["lawfirmname"] = lawfirmname;
+          if (
+            table === "lawfirm" &&
+            column === "lawfirmname" &&
+            !seenLawfirms.has(lawfirmname)
+          ) {
+            seenLawfirms.add(lawfirmname);
+            tables.lawfirm.push(record);
+          } else if (Object.keys(record).length) {
+            tables[table].push(record);
           }
         }
       });
     });
 
-    const uniqueLawfirms = [];
-    const seenLawfirms = new Set();
-    tables.lawfirm.forEach((obj) => {
-      if (!seenLawfirms.has(obj.lawfirmname)) {
-        seenLawfirms.add(obj.lawfirmname);
-        uniqueLawfirms.push(obj);
-      }
-    });
-    tables.lawfirm = uniqueLawfirms;
-
     try {
-      for (const table in tables) {
-        if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table], {
+      for (const [table, records] of Object.entries(tables)) {
+        if (records.length) {
+          const { error } = await supabase.from(table).upsert(records, {
             onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
           });
-          if (error) {
+          if (error)
             console.error(`Error inserting into ${table}:`, error.message);
-          } else {
-            console.log(`Successfully inserted into ${table}`);
-          }
+          else console.log(`Successfully inserted into ${table}`);
         }
       }
     } catch (error) {
