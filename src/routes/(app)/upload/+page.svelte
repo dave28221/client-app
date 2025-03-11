@@ -98,56 +98,54 @@
   }
 
   async function handleDataInsert() {
-  const tables = {
-    lawfirm: [],
-    websites: [],
-  };
+    const tables = {
+      lawfirm: [],
+      websites: [],
+    };
 
-  // Step 1: Extract and prepare lawfirm data
-  data.forEach((row) => {
-    const lawfirmname = row["lawfirmname"]?.trim() || "";
-    if (lawfirmname) {
-      tables.lawfirm.push({ lawfirmname });
-    }
-  });
-
-  // Remove duplicate lawfirm entries
-  const uniqueLawfirms = [];
-  const seenLawfirms = new Set();
-  tables.lawfirm.forEach((obj) => {
-    if (!seenLawfirms.has(obj.lawfirmname)) {
-      seenLawfirms.add(obj.lawfirmname);
-      uniqueLawfirms.push(obj);
-    }
-  });
-  tables.lawfirm = uniqueLawfirms;
-
-  // Log lawfirm data to be inserted
-  console.log("Lawfirm data to be inserted:", tables.lawfirm);
-
-  // Step 2: Start a transaction
-  const { data: transaction, error: transactionError } = await supabase
-    .rpc("begin");
-
-  if (transactionError) {
-    console.error("Error starting transaction:", transactionError.message);
-    return;
-  }
-
-  try {
-    // Step 3: Insert lawfirm data first
-    if (tables.lawfirm.length > 0) {
-      const { error } = await supabase
-        .from("lawfirm")
-        .upsert(tables.lawfirm, { onConflict: ["lawfirmname"] });
-
-      if (error) {
-        console.error("Error inserting into lawfirm:", error.message);
-        throw error;
-      } else {
-        console.log("Successfully inserted into lawfirm");
+    // Step 1: Extract and prepare lawfirm data
+    data.forEach((row) => {
+      const lawfirmname = row["lawfirmname"]?.trim() || "";
+      if (lawfirmname) {
+        tables.lawfirm.push({ lawfirmname });
       }
+    });
+
+    // Remove duplicate lawfirm entries
+    const uniqueLawfirms = [];
+    const seenLawfirms = new Set();
+    tables.lawfirm.forEach((obj) => {
+      if (!seenLawfirms.has(obj.lawfirmname)) {
+        seenLawfirms.add(obj.lawfirmname);
+        uniqueLawfirms.push(obj);
+      }
+    });
+    tables.lawfirm = uniqueLawfirms;
+
+    // Log lawfirm data to be inserted
+    console.log("Lawfirm data to be inserted:", tables.lawfirm);
+
+    // Step 2: Insert lawfirm data first
+    try {
+      if (tables.lawfirm.length > 0) {
+        const { error } = await supabase
+          .from("lawfirm")
+          .upsert(tables.lawfirm, { onConflict: ["lawfirmname"] });
+
+        if (error) {
+          console.error("Error inserting into lawfirm:", error.message);
+          throw error;
+        } else {
+          console.log("Successfully inserted into lawfirm");
+        }
+      }
+    } catch (error) {
+      console.error("Error inserting lawfirm data:", error.message);
+      return;
     }
+
+    // Step 3: Wait for the lawfirm table to be fully updated
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Adjust delay as needed
 
     // Step 4: Prepare data for websites table
     data.forEach((row) => {
@@ -174,27 +172,22 @@
     console.log("Websites data to be inserted:", tables.websites);
 
     // Step 5: Insert data into websites table
-    if (tables.websites.length > 0) {
-      const { error } = await supabase
-        .from("websites")
-        .upsert(tables.websites);
+    try {
+      if (tables.websites.length > 0) {
+        const { error } = await supabase
+          .from("websites")
+          .upsert(tables.websites);
 
-      if (error) {
-        console.error("Error inserting into websites:", error.message);
-        throw error;
-      } else {
-        console.log("Successfully inserted into websites");
+        if (error) {
+          console.error("Error inserting into websites:", error.message);
+        } else {
+          console.log("Successfully inserted into websites");
+        }
       }
+    } catch (error) {
+      console.error("Error inserting data:", error.message);
     }
-
-    // Step 6: Commit the transaction
-    await supabase.rpc("commit");
-  } catch (error) {
-    // Step 7: Rollback the transaction on error
-    await supabase.rpc("rollback");
-    console.error("Error inserting data:", error.message);
   }
-}
 </script>
 
 <div class="homeBanner">
