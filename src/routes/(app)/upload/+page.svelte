@@ -122,7 +122,6 @@
     try {
       for (const table in tables) {
         if (tables[table].length > 0) {
-          // Remove onConflict if lawfirmname is not a unique column
           const { error } = await supabase.from(table).upsert(tables[table]);
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
