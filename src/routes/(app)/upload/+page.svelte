@@ -2,6 +2,7 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
+
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -100,18 +101,34 @@
   async function handleDataInsert() {
     const tables = {
       lawfirm: [],
+      lawyerscontactprofiles: [],
+      products: [],
       websites: [],
     };
 
-    // Step 1: Extract and prepare lawfirm data
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
-      if (lawfirmname) {
-        tables.lawfirm.push({ lawfirmname });
-      }
+      const rowTables = new Set(); 
+
+      columnMappings.forEach(({ header, table, column }) => {
+        if (table && column) {
+          if (column === "lawfirmname" && table === "lawfirm") {
+            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
+          } else {
+            const tempRecord = {};
+            tempRecord[column] = row[header]?.trim() || "";
+            if (column === "lawfirmname") {
+              tempRecord["lawfirmname"] = lawfirmname;
+            }
+            if (Object.keys(tempRecord).length > 0) {
+              tables[table].push(tempRecord);
+              rowTables.add(table); 
+            }
+          }
+        }
+      });
     });
 
-    // Remove duplicate lawfirm entries
     const uniqueLawfirms = [];
     const seenLawfirms = new Set();
     tables.lawfirm.forEach((obj) => {
@@ -122,66 +139,17 @@
     });
     tables.lawfirm = uniqueLawfirms;
 
-    // Log lawfirm data to be inserted
-    console.log("Lawfirm data to be inserted:", tables.lawfirm);
-
-    // Step 2: Insert lawfirm data first
     try {
-      if (tables.lawfirm.length > 0) {
-        const { error } = await supabase
-          .from("lawfirm")
-          .upsert(tables.lawfirm, { onConflict: ["lawfirmname"] });
-
-        if (error) {
-          console.error("Error inserting into lawfirm:", error.message);
-          throw error;
-        } else {
-          console.log("Successfully inserted into lawfirm");
-        }
-      }
-    } catch (error) {
-      console.error("Error inserting lawfirm data:", error.message);
-      return;
-    }
-
-    // Step 3: Wait for the lawfirm table to be fully updated
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Adjust delay as needed
-
-    // Step 4: Prepare data for websites table
-    data.forEach((row) => {
-      const lawfirmname = row["lawfirmname"]?.trim() || "";
-
-      columnMappings.forEach(({ header, table, column }) => {
-        if (table === "websites" && column) {
-          const tempRecord = {};
-          tempRecord[column] = row[header]?.trim() || "";
-
-          // Include lawfirmname in records for websites table
-          if (tableColumns[table].includes("lawfirmname")) {
-            tempRecord["lawfirmname"] = lawfirmname;
+      for (const table in tables) {
+        if (tables[table].length > 0) {
+          const { error } = await supabase.from(table).upsert(tables[table], {
+            onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
+          });
+          if (error) {
+            console.error(`Error inserting into ${table}:`, error.message);
+          } else {
+            console.log(`Successfully inserted into ${table}`);
           }
-
-          if (Object.keys(tempRecord).length > 0) {
-            tables.websites.push(tempRecord);
-          }
-        }
-      });
-    });
-
-    // Log data to be inserted into websites table
-    console.log("Websites data to be inserted:", tables.websites);
-
-    // Step 5: Insert data into websites table
-    try {
-      if (tables.websites.length > 0) {
-        const { error } = await supabase
-          .from("websites")
-          .upsert(tables.websites);
-
-        if (error) {
-          console.error("Error inserting into websites:", error.message);
-        } else {
-          console.log("Successfully inserted into websites");
         }
       }
     } catch (error) {
@@ -191,7 +159,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Testttt 2</h1>
+  <h1 class="leftAlign">Upload CSV Final Test</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
