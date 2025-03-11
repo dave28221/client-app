@@ -111,13 +111,16 @@
         if (table && column && table !== "lawfirm") {
           const tempRecord = {};
           tempRecord[column] = row[header]?.trim() || "";
-          tempRecord["lawfirmname"] = lawfirmname; // Ensure lawfirmname is included in each row
+          tempRecord["lawfirmname"] = lawfirmname; // Explicitly add lawfirmname
           if (Object.keys(tempRecord).length > 0) {
             tables[table].push(tempRecord);
           }
         }
       });
     });
+
+    // Log data before insertion
+    console.log("Data to be inserted:", tables);
 
     try {
       for (const table in tables) {
@@ -137,7 +140,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Tes 4</h1>
+  <h1 class="leftAlign">Upload CSV Final Tes 5</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
