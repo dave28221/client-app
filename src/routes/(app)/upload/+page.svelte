@@ -2,7 +2,6 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
-
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -100,7 +99,6 @@
 
   async function handleDataInsert() {
     const tables = {
-      lawfirm: [],
       lawyerscontactprofiles: [],
       products: [],
       websites: [],
@@ -108,42 +106,28 @@
 
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
-      const rowTables = new Set(); 
 
       columnMappings.forEach(({ header, table, column }) => {
-        if (table && column) {
-          if (column === "lawfirmname" && table === "lawfirm") {
-            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
+        if (table && column && table !== "lawfirm") {
+          const tempRecord = {};
+          tempRecord[column] = row[header]?.trim() || "";
+          if (column === "lawfirmname") {
+            tempRecord["lawfirmname"] = lawfirmname;
           } else {
-            const tempRecord = {};
-            tempRecord[column] = row[header]?.trim() || "";
-            if (column === "lawfirmname") {
-              tempRecord["lawfirmname"] = lawfirmname;
-            }
-            if (Object.keys(tempRecord).length > 0) {
-              tables[table].push(tempRecord);
-              rowTables.add(table); 
-            }
+            tempRecord["lawfirmname"] = lawfirmname; // Ensure lawfirmname is included in each row
+          }
+          if (Object.keys(tempRecord).length > 0) {
+            tables[table].push(tempRecord);
           }
         }
       });
     });
 
-    const uniqueLawfirms = [];
-    const seenLawfirms = new Set();
-    tables.lawfirm.forEach((obj) => {
-      if (!seenLawfirms.has(obj.lawfirmname)) {
-        seenLawfirms.add(obj.lawfirmname);
-        uniqueLawfirms.push(obj);
-      }
-    });
-    tables.lawfirm = uniqueLawfirms;
-
     try {
       for (const table in tables) {
         if (tables[table].length > 0) {
           const { error } = await supabase.from(table).upsert(tables[table], {
-            onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
+            onConflict: ["lawfirmname"], // Assuming lawfirmname is the unique identifier
           });
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
