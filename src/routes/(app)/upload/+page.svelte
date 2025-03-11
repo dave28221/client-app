@@ -111,11 +111,7 @@
         if (table && column && table !== "lawfirm") {
           const tempRecord = {};
           tempRecord[column] = row[header]?.trim() || "";
-          if (column === "lawfirmname") {
-            tempRecord["lawfirmname"] = lawfirmname;
-          } else {
-            tempRecord["lawfirmname"] = lawfirmname; // Ensure lawfirmname is included in each row
-          }
+          tempRecord["lawfirmname"] = lawfirmname; // Ensure lawfirmname is included in each row
           if (Object.keys(tempRecord).length > 0) {
             tables[table].push(tempRecord);
           }
@@ -126,9 +122,8 @@
     try {
       for (const table in tables) {
         if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table], {
-            onConflict: ["lawfirmname"], // Assuming lawfirmname is the unique identifier
-          });
+          // Remove onConflict if lawfirmname is not a unique column
+          const { error } = await supabase.from(table).upsert(tables[table]);
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
           } else {
@@ -143,7 +138,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Test</h1>
+  <h1 class="leftAlign">Upload CSV Final Tes 4</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
