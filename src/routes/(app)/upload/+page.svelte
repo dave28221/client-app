@@ -100,8 +100,6 @@
   async function handleDataInsert() {
     const tables = {
       lawfirm: [],
-      lawyerscontactprofiles: [],
-      products: [],
       websites: [],
     };
 
@@ -159,46 +157,41 @@
       }
     });
 
-    // Step 4: Prepare data for other tables
+    // Step 4: Prepare data for websites table
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
 
       columnMappings.forEach(({ header, table, column }) => {
-        if (table && column && table !== "lawfirm") {
+        if (table === "websites" && column) {
           const tempRecord = {};
           tempRecord[column] = row[header]?.trim() || "";
 
-          // Include lawfirmname in records for tables that require it
+          // Include lawfirmname in records for websites table
           if (tableColumns[table].includes("lawfirmname")) {
             tempRecord["lawfirmname"] = lawfirmname;
           }
 
           if (Object.keys(tempRecord).length > 0) {
-            tables[table].push(tempRecord);
+            tables.websites.push(tempRecord);
           }
         }
       });
     });
 
-    // Log data to be inserted into other tables
-    console.log(
-      "Lawyerscontactprofiles data to be inserted:",
-      tables.lawyerscontactprofiles,
-    );
-    console.log("Products data to be inserted:", tables.products);
+    // Log data to be inserted into websites table
     console.log("Websites data to be inserted:", tables.websites);
 
-    // Step 5: Insert data into other tables
+    // Step 5: Insert data into websites table
     try {
-      for (const table of ["lawyerscontactprofiles", "products", "websites"]) {
-        if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table]);
+      if (tables.websites.length > 0) {
+        const { error } = await supabase
+          .from("websites")
+          .upsert(tables.websites);
 
-          if (error) {
-            console.error(`Error inserting into ${table}:`, error.message);
-          } else {
-            console.log(`Successfully inserted into ${table}`);
-          }
+        if (error) {
+          console.error("Error inserting into websites:", error.message);
+        } else {
+          console.log("Successfully inserted into websites");
         }
       }
     } catch (error) {
