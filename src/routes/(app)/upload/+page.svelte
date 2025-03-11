@@ -97,7 +97,7 @@
     reader.readAsText(file);
   }
 
-  sync function handleDataInsert() {
+  async function handleDataInsert() {
   const tables = {
     lawfirm: [], // Add lawfirm table processing
     lawyerscontactprofiles: [],
