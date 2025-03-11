@@ -2,6 +2,7 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
+
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -107,22 +108,27 @@
 
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
+      const rowTables = new Set(); 
 
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          const tempRecord = {};
-          tempRecord[column] = row[header]?.trim() || "";
-          if (table !== "lawfirm" && lawfirmname) {
-            tempRecord["lawfirmname"] = lawfirmname;
-          }
-          if (Object.keys(tempRecord).length > 1 || (table === "lawfirm" && column === "lawfirmname")) {
-            tables[table].push(tempRecord);
+          if (column === "lawfirmname" && table === "lawfirm") {
+            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
+          } else {
+            const tempRecord = {};
+            tempRecord[column] = row[header]?.trim() || "";
+            if (column === "lawfirmname") {
+              tempRecord["lawfirmname"] = lawfirmname;
+            }
+            if (Object.keys(tempRecord).length > 0) {
+              tables[table].push(tempRecord);
+              rowTables.add(table); 
+            }
           }
         }
       });
     });
 
-    // Remove duplicates from the lawfirm table
     const uniqueLawfirms = [];
     const seenLawfirms = new Set();
     tables.lawfirm.forEach((obj) => {
@@ -134,23 +140,11 @@
     tables.lawfirm = uniqueLawfirms;
 
     try {
-      // Insert lawfirm data first
-      if (tables.lawfirm.length > 0) {
-        const { error } = await supabase.from("lawfirm").upsert(tables.lawfirm, {
-          onConflict: ["lawfirmname"],
-        });
-        if (error) {
-          console.error(`Error inserting into lawfirm:`, error.message);
-          return;
-        } else {
-          console.log(`Successfully inserted into lawfirm`);
-        }
-      }
-
-      // Insert related data
       for (const table in tables) {
-        if (table !== "lawfirm" && tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table]);
+        if (tables[table].length > 0) {
+          const { error } = await supabase.from(table).upsert(tables[table], {
+            onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
+          });
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
           } else {
@@ -165,7 +159,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV</h1>
+  <h1 class="leftAlign">Upload CSV Final Test</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
@@ -193,7 +187,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
@@ -230,6 +225,16 @@
   }
 
   button:hover {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 150px;
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
     background-color: #292828;
     color: #ffffff;
   }
@@ -252,7 +257,7 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
-    width: 90%;
+    width: 45%;
     font-size: 16px;
     font-weight: 600;
   }
