@@ -2,8 +2,10 @@ import { fail } from '@sveltejs/kit';
 import { supabase } from '../../../lib/supabaseClient';
 
 function removeDuplicates(data, uniqueColumn) {
+  if (!data || !Array.isArray(data)) return [];
   const seen = new Set();
   return data.filter((item) => {
+    if (!item || !item[uniqueColumn]) return false; // Skip if uniqueColumn is missing
     const value = item[uniqueColumn];
     if (seen.has(value)) {
       return false;
@@ -14,20 +16,29 @@ function removeDuplicates(data, uniqueColumn) {
 }
 
 async function insertData(table, data, uniqueColumn) {
-  if (data.length === 0) return;
+  if (data.length === 0) {
+    console.warn(`No data to insert into ${table}`);
+    return;
+  }
 
   // Validate data types
   const validatedData = data.map(item => {
     const newItem = {};
     for (const key in item) {
       if (item.hasOwnProperty(key)) {
-        // Add more type checking as needed based on your Supabase schema
-        if (typeof item[key] === 'number') {
-          newItem[key] = item[key];
-        } else if (typeof item[key] === 'boolean') {
-          newItem[key] = item[key];
+        if (key === 'created_at' || key === 'updated_at') {
+          // Ensure the value is a valid date string or timestamp
+          newItem[key] = item[key] ? new Date(item[key]).toISOString() : null;
+        } else if (key === 'metadata' || key === 'settings') {
+          // Ensure the value is a valid JSON object
+          try {
+            newItem[key] = item[key] ? JSON.parse(item[key]) : null;
+          } catch {
+            newItem[key] = null;
+          }
         } else {
-          newItem[key] = item[key] ? item[key].toString() : null; // Convert to string or null
+          // Default to string or null
+          newItem[key] = item[key] ? item[key].toString() : null;
         }
       }
     }
@@ -40,7 +51,8 @@ async function insertData(table, data, uniqueColumn) {
 
   if (error) {
     console.error(`Error inserting data into ${table}:`, error);
-    throw new Error(`Error inserting data into ${table}`);
+    console.error('Failed data:', validatedData); // Log the data that failed
+    throw new Error(`Error inserting data into ${table}: ${error.message}`);
   } else {
     console.log(`Data inserted successfully into ${table}:`, supabaseData);
   }
@@ -69,34 +81,32 @@ export const actions = {
         return fail(400, { error: 'Invalid data format' });
       }
 
-      // Remove duplicates
-      formattedData.lawfirm = removeDuplicates(
-        formattedData.lawfirm,
-        "lawfirmname",
-      );
-      formattedData.lawyerscontactprofiles = removeDuplicates(
-        formattedData.lawyerscontactprofiles,
-        "email",
-      );
-      formattedData.products = removeDuplicates(
-        formattedData.products,
-        "lawfirmname",
-      );
-      formattedData.websites = removeDuplicates(
-        formattedData.websites,
-        "url",
-      );
-      formattedData.areasoflaw = removeDuplicates(
-        formattedData.areasoflaw,
-        "areaoflawid",
-      );
+      // Ensure lawfirmname is propagated to related tables
+      formattedData.lawyerscontactprofiles = formattedData.lawyerscontactprofiles.map(profile => ({
+        ...profile,
+        lawfirmname: profile.lawfirmname || formattedData.lawfirm[0]?.lawfirmname || null,
+      }));
 
+      formattedData.products = formattedData.products.map(product => ({
+        ...product,
+        lawfirmname: product.lawfirmname || formattedData.lawfirm[0]?.lawfirmname || null,
+      }));
+
+      formattedData.websites = formattedData.websites.map(website => ({
+        ...website,
+        lawfirmname: website.lawfirmname || formattedData.lawfirm[0]?.lawfirmname || null,
+      }));
+
+      // Remove duplicates
+      formattedData.lawfirm = removeDuplicates(formattedData.lawfirm, "lawfirmname");
+      formattedData.lawyerscontactprofiles = removeDuplicates(formattedData.lawyerscontactprofiles, "email");
+      formattedData.products = removeDuplicates(formattedData.products, "lawfirmname");
+      formattedData.websites = removeDuplicates(formattedData.websites, "url");
+      formattedData.areasoflaw = removeDuplicates(formattedData.areasoflaw, "areaoflawid");
+
+      // Insert data into Supabase
       await insertData("lawfirm", formattedData.lawfirm, "lawfirmname");
-      await insertData(
-        "lawyerscontactprofiles",
-        formattedData.lawyerscontactprofiles,
-        "email",
-      );
+      await insertData("lawyerscontactprofiles", formattedData.lawyerscontactprofiles, "email");
       await insertData("products", formattedData.products, "lawfirmname");
       await insertData("websites", formattedData.websites, "url");
       await insertData("areasoflaw", formattedData.areasoflaw, "areaoflawid");
