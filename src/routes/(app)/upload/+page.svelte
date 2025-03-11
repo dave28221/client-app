@@ -105,11 +105,7 @@
       websites: [],
     };
 
-    const validLawfirmnames = new Set(
-      tables.lawfirm.map((firm) => firm.lawfirmname),
-    );
-
-    // Extract and prepare lawfirm data
+    // Step 1: Extract and prepare lawfirm data
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
       if (lawfirmname) {
@@ -128,7 +124,10 @@
     });
     tables.lawfirm = uniqueLawfirms;
 
-    // Insert lawfirm data first
+    // Log lawfirm data to be inserted
+    console.log("Lawfirm data to be inserted:", tables.lawfirm);
+
+    // Step 2: Insert lawfirm data first
     try {
       if (tables.lawfirm.length > 0) {
         const { error } = await supabase
@@ -147,7 +146,18 @@
       return;
     }
 
-    // Prepare data for other tables
+    // Step 3: Validate lawfirmname values
+    const validLawfirmnames = new Set(tables.lawfirm.map((firm) => firm.lawfirmname));
+
+    data.forEach((row) => {
+      const lawfirmname = row["lawfirmname"]?.trim() || "";
+      if (!validLawfirmnames.has(lawfirmname)) {
+        console.warn(`Invalid lawfirmname: ${lawfirmname}`);
+        return; // Skip this row
+      }
+    });
+
+    // Step 4: Prepare data for other tables
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
 
@@ -168,7 +178,12 @@
       });
     });
 
-    // Insert data into other tables
+    // Log data to be inserted into other tables
+    console.log("Lawyerscontactprofiles data to be inserted:", tables.lawyerscontactprofiles);
+    console.log("Products data to be inserted:", tables.products);
+    console.log("Websites data to be inserted:", tables.websites);
+
+    // Step 5: Insert data into other tables
     try {
       for (const table of ["lawyerscontactprofiles", "products", "websites"]) {
         if (tables[table].length > 0) {
@@ -188,7 +203,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Testttt</h1>
+  <h1 class="leftAlign">Upload CSV Final Testttt 1</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
@@ -216,8 +231,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
