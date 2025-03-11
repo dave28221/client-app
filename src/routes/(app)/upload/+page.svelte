@@ -105,30 +105,16 @@
       websites: [],
     };
 
+    const validLawfirmnames = new Set(
+      tables.lawfirm.map((firm) => firm.lawfirmname),
+    );
+
+    // Extract and prepare lawfirm data
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
-
-      // Create a record for the lawfirm table
       if (lawfirmname) {
         tables.lawfirm.push({ lawfirmname });
       }
-
-      // Map data to other tables
-      columnMappings.forEach(({ header, table, column }) => {
-        if (table && column && table !== "lawfirm") {
-          const tempRecord = {};
-          tempRecord[column] = row[header]?.trim() || "";
-
-          // Ensure lawfirmname is included in each record
-          if (tableColumns[table].includes("lawfirmname")) {
-            tempRecord["lawfirmname"] = lawfirmname;
-          }
-
-          if (Object.keys(tempRecord).length > 0) {
-            tables[table].push(tempRecord);
-          }
-        }
-      });
     });
 
     // Remove duplicate lawfirm entries
@@ -142,12 +128,52 @@
     });
     tables.lawfirm = uniqueLawfirms;
 
+    // Insert lawfirm data first
     try {
-      for (const table in tables) {
+      if (tables.lawfirm.length > 0) {
+        const { error } = await supabase
+          .from("lawfirm")
+          .upsert(tables.lawfirm, { onConflict: ["lawfirmname"] });
+
+        if (error) {
+          console.error("Error inserting into lawfirm:", error.message);
+          throw error;
+        } else {
+          console.log("Successfully inserted into lawfirm");
+        }
+      }
+    } catch (error) {
+      console.error("Error inserting lawfirm data:", error.message);
+      return;
+    }
+
+    // Prepare data for other tables
+    data.forEach((row) => {
+      const lawfirmname = row["lawfirmname"]?.trim() || "";
+
+      columnMappings.forEach(({ header, table, column }) => {
+        if (table && column && table !== "lawfirm") {
+          const tempRecord = {};
+          tempRecord[column] = row[header]?.trim() || "";
+
+          // Include lawfirmname in records for tables that require it
+          if (tableColumns[table].includes("lawfirmname")) {
+            tempRecord["lawfirmname"] = lawfirmname;
+          }
+
+          if (Object.keys(tempRecord).length > 0) {
+            tables[table].push(tempRecord);
+          }
+        }
+      });
+    });
+
+    // Insert data into other tables
+    try {
+      for (const table of ["lawyerscontactprofiles", "products", "websites"]) {
         if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table], {
-            onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
-          });
+          const { error } = await supabase.from(table).upsert(tables[table]);
+
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
           } else {
@@ -162,7 +188,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Test</h1>
+  <h1 class="leftAlign">Upload CSV Final Testttt</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
