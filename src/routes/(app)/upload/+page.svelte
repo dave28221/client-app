@@ -107,37 +107,16 @@
     };
 
     data.forEach((row) => {
-      const lawfirmname = row["lawfirmname"]?.trim() || "";
-      const rowTables = new Set(); 
-
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          if (column === "lawfirmname" && table === "lawfirm") {
-            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
-          } else {
-            const tempRecord = {};
-            tempRecord[column] = row[header]?.trim() || "";
-            if (column === "lawfirmname") {
-              tempRecord["lawfirmname"] = lawfirmname;
-            }
-            if (Object.keys(tempRecord).length > 0) {
-              tables[table].push(tempRecord);
-              rowTables.add(table); 
-            }
+          const tempRecord = {};
+          tempRecord[column] = row[header] || "";
+          if (Object.keys(tempRecord).length > 0) {
+            tables[table].push(tempRecord);
           }
         }
       });
     });
-
-    const uniqueLawfirms = [];
-    const seenLawfirms = new Set();
-    tables.lawfirm.forEach((obj) => {
-      if (!seenLawfirms.has(obj.lawfirmname)) {
-        seenLawfirms.add(obj.lawfirmname);
-        uniqueLawfirms.push(obj);
-      }
-    });
-    tables.lawfirm = uniqueLawfirms;
 
     try {
       for (const table in tables) {
@@ -159,7 +138,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Test</h1>
+  <h1 class="leftAlign">Upload CSV Final Test 10</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
