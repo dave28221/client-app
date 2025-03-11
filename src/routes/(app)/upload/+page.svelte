@@ -2,7 +2,6 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
-
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -108,27 +107,31 @@
 
     data.forEach((row) => {
       const lawfirmname = row["lawfirmname"]?.trim() || "";
-      const rowTables = new Set(); 
 
+      // Create a record for the lawfirm table
+      if (lawfirmname) {
+        tables.lawfirm.push({ lawfirmname });
+      }
+
+      // Map data to other tables
       columnMappings.forEach(({ header, table, column }) => {
-        if (table && column) {
-          if (column === "lawfirmname" && table === "lawfirm") {
-            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
-          } else {
-            const tempRecord = {};
-            tempRecord[column] = row[header]?.trim() || "";
-            if (column === "lawfirmname") {
-              tempRecord["lawfirmname"] = lawfirmname;
-            }
-            if (Object.keys(tempRecord).length > 0) {
-              tables[table].push(tempRecord);
-              rowTables.add(table); 
-            }
+        if (table && column && table !== "lawfirm") {
+          const tempRecord = {};
+          tempRecord[column] = row[header]?.trim() || "";
+
+          // Ensure lawfirmname is included in each record
+          if (tableColumns[table].includes("lawfirmname")) {
+            tempRecord["lawfirmname"] = lawfirmname;
+          }
+
+          if (Object.keys(tempRecord).length > 0) {
+            tables[table].push(tempRecord);
           }
         }
       });
     });
 
+    // Remove duplicate lawfirm entries
     const uniqueLawfirms = [];
     const seenLawfirms = new Set();
     tables.lawfirm.forEach((obj) => {
