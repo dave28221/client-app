@@ -2,6 +2,7 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
+
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -84,8 +85,6 @@
         complete: (results) => {
           headers = results.meta.fields;
           data = results.data;
-          console.log("Parsed Headers:", headers);
-          console.log("Parsed Data:", data);
           columnMappings = headers.map((header) => ({
             header,
             table: "",
@@ -108,46 +107,44 @@
     };
 
     data.forEach((row) => {
-      console.log("Processing row:", row);
       const lawfirmname = row["lawfirmname"]?.trim() || "";
-      if (!lawfirmname) {
-        console.warn("Skipping row due to missing lawfirmname:", row);
-        return;
-      }
+      const rowTables = new Set(); 
 
-      // Collect lawfirm data
-      const lawfirmRecord = {};
-      tableColumns.lawfirm.forEach((column) => {
-        if (row[column] !== undefined) {
-          lawfirmRecord[column] = row[column]?.trim() || "";
-        }
-      });
-
-      console.log("Lawfirm Record:", lawfirmRecord);
-      if (lawfirmname && Object.keys(lawfirmRecord).length > 0) {
-        tables.lawfirm.push(lawfirmRecord);
-      }
-
-      // Collect other table data
       columnMappings.forEach(({ header, table, column }) => {
-        if (table && column && table !== "lawfirm") {
-          const tempRecord = {};
-          tempRecord[column] = row[header]?.trim() || "";
-          tempRecord["lawfirmname"] = lawfirmname; // Ensure lawfirmname is added
-          if (Object.keys(tempRecord).length > 0) {
-            tables[table].push(tempRecord);
+        if (table && column) {
+          if (column === "lawfirmname" && table === "lawfirm") {
+            tables.lawfirm.push({ lawfirmname: row[header]?.trim() || "" });
+          } else {
+            const tempRecord = {};
+            tempRecord[column] = row[header]?.trim() || "";
+            if (column === "lawfirmname") {
+              tempRecord["lawfirmname"] = lawfirmname;
+            }
+            if (Object.keys(tempRecord).length > 0) {
+              tables[table].push(tempRecord);
+              rowTables.add(table); 
+            }
           }
         }
       });
     });
 
-    // Log data before insertion
-    console.log("Data to be inserted:", tables);
+    const uniqueLawfirms = [];
+    const seenLawfirms = new Set();
+    tables.lawfirm.forEach((obj) => {
+      if (!seenLawfirms.has(obj.lawfirmname)) {
+        seenLawfirms.add(obj.lawfirmname);
+        uniqueLawfirms.push(obj);
+      }
+    });
+    tables.lawfirm = uniqueLawfirms;
 
     try {
       for (const table in tables) {
         if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table]);
+          const { error } = await supabase.from(table).upsert(tables[table], {
+            onConflict: table === "lawfirm" ? ["lawfirmname"] : undefined,
+          });
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
           } else {
@@ -161,9 +158,8 @@
   }
 </script>
 
-
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Tes 7</h1>
+  <h1 class="leftAlign">Upload CSV Final Test</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
