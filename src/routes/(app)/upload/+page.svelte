@@ -2,7 +2,6 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
-
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -106,11 +105,15 @@
       websites: [],
     };
 
+    // Organize data into tables
     data.forEach((row) => {
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
           const tempRecord = {};
           tempRecord[column] = row[header] || "";
+          if (column === "lawfirmname" && row["lawfirmname"]) {
+            tempRecord["lawfirmname"] = row["lawfirmname"]; // Ensure lawfirmname is included
+          }
           if (Object.keys(tempRecord).length > 0) {
             tables[table].push(tempRecord);
           }
@@ -119,7 +122,16 @@
     });
 
     try {
-      for (const table in tables) {
+      // Insert lawfirms first
+      if (tables.lawfirm.length > 0) {
+        const { error } = await supabase.from("lawfirm").upsert(tables.lawfirm);
+        if (error)
+          throw new Error(`Error inserting into lawfirm: ${error.message}`);
+        console.log("Successfully inserted into lawfirm");
+      }
+
+      // Insert into other tables
+      for (const table of ["lawyerscontactprofiles", "products", "websites"]) {
         if (tables[table].length > 0) {
           const { error } = await supabase.from(table).upsert(tables[table]);
           if (error) {
@@ -136,7 +148,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Test</h1>
+  <h1 class="leftAlign">Upload CSV Final Test json</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
