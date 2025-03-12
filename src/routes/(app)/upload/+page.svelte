@@ -2,6 +2,7 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
+
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -105,50 +106,21 @@
       websites: [],
     };
 
-    // Organize data into tables
     data.forEach((row) => {
-      let lawfirmName = row["lawfirmname"] || "";
-
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          if (table !== "lawfirm") {
-            tables[table].push({
-              [column]: row[header] || "",
-            });
-          } else {
-            tables.lawfirm.push({ [column]: row[header] || "" });
+          const tempRecord = {};
+          tempRecord[column] = row[header] || "";
+          if (Object.keys(tempRecord).length > 0) {
+            tables[table].push(tempRecord);
           }
         }
       });
     });
 
     try {
-      let insertedLawfirmNames = [];
-
-      // Insert lawfirms first
-      if (tables.lawfirm.length > 0) {
-        const { data: lawfirmData, error: lawfirmError } = await supabase
-          .from("lawfirm")
-          .upsert(tables.lawfirm)
-          .select(); // Retrieve inserted rows
-
-        if (lawfirmError)
-          throw new Error(
-            `Error inserting into lawfirm: ${lawfirmError.message}`,
-          );
-
-        insertedLawfirmNames = lawfirmData.map((row) => row.lawfirmname);
-        console.log("Inserted lawfirms:", insertedLawfirmNames);
-      }
-
-      // Insert into other tables using retrieved lawfirmname
-      for (const table of ["lawyerscontactprofiles", "products", "websites"]) {
+      for (const table in tables) {
         if (tables[table].length > 0) {
-          tables[table] = tables[table].map((row, index) => ({
-            ...row,
-            lawfirmname: insertedLawfirmNames[index] || "", // Ensure lawfirmname is assigned
-          }));
-
           const { error } = await supabase.from(table).upsert(tables[table]);
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
@@ -164,7 +136,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Test json 2</h1>
+  <h1 class="leftAlign">Upload CSV</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
