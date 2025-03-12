@@ -111,16 +111,9 @@
 
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          // Ensure the lawfirmname is included in every table entry
-          if (!lawfirmName) {
-            console.error("Missing lawfirmname for row:", row);
-            return; // Skip rows without lawfirmname
-          }
-
           if (table !== "lawfirm") {
             tables[table].push({
               [column]: row[header] || "",
-              lawfirmname: lawfirmName,
             });
           } else {
             tables.lawfirm.push({ [column]: row[header] || "" });
@@ -130,17 +123,32 @@
     });
 
     try {
+      let insertedLawfirmNames = [];
+
       // Insert lawfirms first
       if (tables.lawfirm.length > 0) {
-        const { error } = await supabase.from("lawfirm").upsert(tables.lawfirm);
-        if (error)
-          throw new Error(`Error inserting into lawfirm: ${error.message}`);
-        console.log("Successfully inserted into lawfirm");
+        const { data: lawfirmData, error: lawfirmError } = await supabase
+          .from("lawfirm")
+          .upsert(tables.lawfirm)
+          .select(); // Retrieve inserted rows
+
+        if (lawfirmError)
+          throw new Error(
+            `Error inserting into lawfirm: ${lawfirmError.message}`,
+          );
+
+        insertedLawfirmNames = lawfirmData.map((row) => row.lawfirmname);
+        console.log("Inserted lawfirms:", insertedLawfirmNames);
       }
 
-      // Insert into other tables
+      // Insert into other tables using retrieved lawfirmname
       for (const table of ["lawyerscontactprofiles", "products", "websites"]) {
         if (tables[table].length > 0) {
+          tables[table] = tables[table].map((row, index) => ({
+            ...row,
+            lawfirmname: insertedLawfirmNames[index] || "", // Ensure lawfirmname is assigned
+          }));
+
           const { error } = await supabase.from(table).upsert(tables[table]);
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
@@ -156,7 +164,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Test json 1</h1>
+  <h1 class="leftAlign">Upload CSV Final Test json 2</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
