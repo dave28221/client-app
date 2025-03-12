@@ -107,15 +107,23 @@
 
     // Organize data into tables
     data.forEach((row) => {
+      let lawfirmName = row["lawfirmname"] || "";
+
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          const tempRecord = {};
-          tempRecord[column] = row[header] || "";
-          if (column === "lawfirmname" && row["lawfirmname"]) {
-            tempRecord["lawfirmname"] = row["lawfirmname"]; // Ensure lawfirmname is included
+          // Ensure the lawfirmname is included in every table entry
+          if (!lawfirmName) {
+            console.error("Missing lawfirmname for row:", row);
+            return; // Skip rows without lawfirmname
           }
-          if (Object.keys(tempRecord).length > 0) {
-            tables[table].push(tempRecord);
+
+          if (table !== "lawfirm") {
+            tables[table].push({
+              [column]: row[header] || "",
+              lawfirmname: lawfirmName,
+            });
+          } else {
+            tables.lawfirm.push({ [column]: row[header] || "" });
           }
         }
       });
@@ -148,7 +156,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Final Test json</h1>
+  <h1 class="leftAlign">Upload CSV Final Test json 1</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
