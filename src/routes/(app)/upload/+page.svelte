@@ -105,29 +105,11 @@
       websites: [],
     };
 
-    let lawfirmName = "";
-
-    // Step 1: Extract lawfirmname from the lawfirm table data
-    data.forEach((row) => {
-      columnMappings.forEach(({ header, table, column }) => {
-        if (table === "lawfirm" && column === "lawfirmname") {
-          lawfirmName = row[header] || ""; // Extract lawfirmname
-        }
-      });
-    });
-
-    // Step 2: Populate the tables with the data
     data.forEach((row) => {
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
           const tempRecord = {};
           tempRecord[column] = row[header] || "";
-
-          // Step 3: Ensure lawfirmname is added to all tables
-          if (table !== "lawfirm" && column === "lawfirmname") {
-            tempRecord[column] = lawfirmName; // Propagate lawfirmname to all tables
-          }
-
           if (Object.keys(tempRecord).length > 0) {
             tables[table].push(tempRecord);
           }
@@ -135,7 +117,6 @@
       });
     });
 
-    // Step 4: Insert data into Supabase tables
     try {
       for (const table in tables) {
         if (tables[table].length > 0) {
@@ -154,7 +135,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV</h1>
+  <h1 class="leftAlign">Upload CSV File</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
