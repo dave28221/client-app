@@ -98,6 +98,16 @@
   }
 
   async function handleDataInsert() {
+    // Check if all headers have been mapped to a table and column
+    const unmappedHeaders = columnMappings.filter(
+      (mapping) => !mapping.table || !mapping.column
+    );
+
+    if (unmappedHeaders.length > 0) {
+      alert("Please map all headers to a table and column before inserting data.");
+      return;
+    }
+
     const tables = {
       lawfirm: [],
       lawyerscontactprofiles: [],
@@ -163,8 +173,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
