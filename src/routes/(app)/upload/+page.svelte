@@ -105,11 +105,29 @@
       websites: [],
     };
 
+    let lawfirmName = "";
+
+    // Extract lawfirmname from the lawfirm table data
+    data.forEach((row) => {
+      columnMappings.forEach(({ header, table, column }) => {
+        if (table === "lawfirm" && column === "lawfirmname") {
+          lawfirmName = row[header] || "";
+        }
+      });
+    });
+
+    // Populate the tables with the data
     data.forEach((row) => {
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
           const tempRecord = {};
           tempRecord[column] = row[header] || "";
+
+          // If the table is not 'lawfirm' and the column is 'lawfirmname', set it to the extracted lawfirmName
+          if (table !== "lawfirm" && column === "lawfirmname") {
+            tempRecord[column] = lawfirmName;
+          }
+
           if (Object.keys(tempRecord).length > 0) {
             tables[table].push(tempRecord);
           }
@@ -135,7 +153,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV 45</h1>
+  <h1 class="leftAlign">Upload CSV</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
@@ -163,7 +181,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
