@@ -107,25 +107,25 @@
 
     let lawfirmName = "";
 
-    // Extract lawfirmname from the lawfirm table data
+    // Step 1: Extract lawfirmname from the lawfirm table data
     data.forEach((row) => {
       columnMappings.forEach(({ header, table, column }) => {
         if (table === "lawfirm" && column === "lawfirmname") {
-          lawfirmName = row[header] || "";
+          lawfirmName = row[header] || ""; // Extract lawfirmname
         }
       });
     });
 
-    // Populate the tables with the data
+    // Step 2: Populate the tables with the data
     data.forEach((row) => {
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
           const tempRecord = {};
           tempRecord[column] = row[header] || "";
 
-          // If the table is not 'lawfirm' and the column is 'lawfirmname', set it to the extracted lawfirmName
+          // Step 3: Ensure lawfirmname is added to all tables
           if (table !== "lawfirm" && column === "lawfirmname") {
-            tempRecord[column] = lawfirmName;
+            tempRecord[column] = lawfirmName; // Propagate lawfirmname to all tables
           }
 
           if (Object.keys(tempRecord).length > 0) {
@@ -135,6 +135,7 @@
       });
     });
 
+    // Step 4: Insert data into Supabase tables
     try {
       for (const table in tables) {
         if (tables[table].length > 0) {
