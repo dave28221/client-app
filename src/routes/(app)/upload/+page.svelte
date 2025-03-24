@@ -187,7 +187,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV File</h1>
+  <h1 class="leftAlign">Upload CSV Files test</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
