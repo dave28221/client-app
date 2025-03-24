@@ -126,7 +126,7 @@
 
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          records[table][column] = row[header] || "N/A";
+          records[table][column] = row[header] || null;
         }
       });
 
@@ -139,36 +139,30 @@
         );
       }
 
-      const lawfirmname = records.lawfirm.lawfirmname || "N/A";
-
-      if (!records.lawyerscontactprofiles.lawfirmname) {
-        records.lawyerscontactprofiles.lawfirmname = lawfirmname;
+      if (records.lawyerscontactprofiles.email) {
+        tables.lawyerscontactprofiles.push(records.lawyerscontactprofiles);
+      } else {
+        console.error(
+          "Skipping record due to missing email:",
+          records.lawyerscontactprofiles,
+        );
       }
-      tables.lawyerscontactprofiles.push(records.lawyerscontactprofiles);
 
-      if (!records.products.lawfirmname) {
-        records.products.lawfirmname = lawfirmname;
+      if (records.websites.url) {
+        tables.websites.push(records.websites);
+      } else {
+        console.error("Skipping record due to missing url:", records.websites);
       }
+
       tables.products.push(records.products);
-
-      if (!records.websites.lawfirmname) {
-        records.websites.lawfirmname = lawfirmname;
-      }
-      if (!records.websites.url) {
-        records.websites.url = "N/A";
-      }
-      tables.websites.push(records.websites);
     });
 
     console.log("Prepared data for Supabase:", tables);
 
     try {
-      // Remove the unique constraint on email column in lawyerscontactprofiles table before inserting
-      await supabase.rpc('remove_email_unique_constraint'); // Assuming you created this RPC function
-
       for (const table in tables) {
         if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table], { onConflict: ['email'] });
+          const { error } = await supabase.from(table).upsert(tables[table]);
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
           } else {
@@ -183,7 +177,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV File</h1>
+  <h1 class="leftAlign">Upload CSV File 22</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
@@ -211,7 +205,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
