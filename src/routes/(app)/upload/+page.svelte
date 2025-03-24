@@ -124,53 +124,47 @@
         websites: {},
       };
 
-      let lawfirmname = row["lawfirmname"] || "N/A"; // Extract the lawfirmname from the row
-
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
           records[table][column] = row[header] || null;
         }
       });
 
-      // Ensure lawfirmname is included in all tables
-      if (!records.lawfirm.lawfirmname) {
-        records.lawfirm.lawfirmname = lawfirmname;
-      }
-      if (!records.lawyerscontactprofiles.lawfirmname) {
-        records.lawyerscontactprofiles.lawfirmname = lawfirmname;
-      }
-      if (!records.products.lawfirmname) {
-        records.products.lawfirmname = lawfirmname;
-      }
-      if (!records.websites.lawfirmname) {
-        records.websites.lawfirmname = lawfirmname;
-      }
-
+      // Ensure lawfirmname is included in the lawfirm table
       if (records.lawfirm.lawfirmname) {
         tables.lawfirm.push(records.lawfirm);
       } else {
-        console.error(
-          "Skipping record due to missing lawfirmname:",
-          records.lawfirm,
-        );
+        console.error("Skipping record due to missing lawfirmname:", records.lawfirm);
       }
 
+      // Parsing lawfirmname into all other tables
+      const lawfirmname = records.lawfirm.lawfirmname || "N/A"; // Set default lawfirmname if missing
+
+      // Insert into lawyerscontactprofiles
+      if (!records.lawyerscontactprofiles.lawfirmname) {
+        records.lawyerscontactprofiles.lawfirmname = lawfirmname;
+      }
       if (records.lawyerscontactprofiles.email) {
         tables.lawyerscontactprofiles.push(records.lawyerscontactprofiles);
       } else {
-        console.error(
-          "Skipping record due to missing email:",
-          records.lawyerscontactprofiles,
-        );
+        console.error("Skipping record due to missing email:", records.lawyerscontactprofiles);
       }
 
+      // Insert into products
+      if (!records.products.lawfirmname) {
+        records.products.lawfirmname = lawfirmname;
+      }
+      tables.products.push(records.products);
+
+      // Insert into websites
+      if (!records.websites.lawfirmname) {
+        records.websites.lawfirmname = lawfirmname;
+      }
       if (records.websites.url) {
         tables.websites.push(records.websites);
       } else {
         console.error("Skipping record due to missing url:", records.websites);
       }
-
-      tables.products.push(records.products);
     });
 
     console.log("Prepared data for Supabase:", tables);
@@ -193,7 +187,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV File 22</h1>
+  <h1 class="leftAlign">Upload CSV File</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
@@ -221,10 +215,10 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
+
 
 <style>
   .searchAndAdd {
