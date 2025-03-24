@@ -126,7 +126,7 @@
 
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          records[table][column] = row[header] || null;
+          records[table][column] = row[header] || "N/A";
         }
       });
 
@@ -139,24 +139,25 @@
         );
       }
 
-      const lawfirmname = records.lawfirm.lawfirmname || null;
+      const lawfirmname = records.lawfirm.lawfirmname || "N/A";
 
-      if (lawfirmname) {
-        if (!records.lawyerscontactprofiles.lawfirmname) {
-          records.lawyerscontactprofiles.lawfirmname = lawfirmname;
-        }
-        tables.lawyerscontactprofiles.push(records.lawyerscontactprofiles);
-
-        if (!records.products.lawfirmname) {
-          records.products.lawfirmname = lawfirmname;
-        }
-        tables.products.push(records.products);
-
-        if (!records.websites.lawfirmname) {
-          records.websites.lawfirmname = lawfirmname;
-        }
-        tables.websites.push(records.websites);
+      if (!records.lawyerscontactprofiles.lawfirmname) {
+        records.lawyerscontactprofiles.lawfirmname = lawfirmname;
       }
+      tables.lawyerscontactprofiles.push(records.lawyerscontactprofiles);
+
+      if (!records.products.lawfirmname) {
+        records.products.lawfirmname = lawfirmname;
+      }
+      tables.products.push(records.products);
+
+      if (!records.websites.lawfirmname) {
+        records.websites.lawfirmname = lawfirmname;
+      }
+      if (!records.websites.url) {
+        records.websites.url = "N/A";
+      }
+      tables.websites.push(records.websites);
     });
 
     console.log("Prepared data for Supabase:", tables);
@@ -179,7 +180,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV File 4</h1>
+  <h1 class="leftAlign">Upload CSV Files</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
@@ -207,8 +208,7 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
-    >
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
 
