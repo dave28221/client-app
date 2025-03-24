@@ -98,13 +98,14 @@
   }
 
   async function handleDataInsert() {
-    // Check if all headers have been mapped to a table and column
     const unmappedHeaders = columnMappings.filter(
-      (mapping) => !mapping.table || !mapping.column
+      (mapping) => !mapping.table || !mapping.column,
     );
 
     if (unmappedHeaders.length > 0) {
-      alert("Please map all headers to a table and column before inserting data.");
+      alert(
+        "Please map all headers to a table and column before inserting data.",
+      );
       return;
     }
 
@@ -116,16 +117,47 @@
     };
 
     data.forEach((row) => {
+      const records = {
+        lawfirm: {},
+        lawyerscontactprofiles: {},
+        products: {},
+        websites: {},
+      };
+
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
-          const tempRecord = {};
-          tempRecord[column] = row[header] || "";
-          if (Object.keys(tempRecord).length > 0) {
-            tables[table].push(tempRecord);
-          }
+          records[table][column] = row[header] || null;
         }
       });
+
+      if (records.lawfirm.lawfirmname) {
+        tables.lawfirm.push(records.lawfirm);
+      } else {
+        console.error(
+          "Skipping record due to missing lawfirmname:",
+          records.lawfirm,
+        );
+      }
+
+      if (records.lawyerscontactprofiles.email) {
+        tables.lawyerscontactprofiles.push(records.lawyerscontactprofiles);
+      } else {
+        console.error(
+          "Skipping record due to missing email:",
+          records.lawyerscontactprofiles,
+        );
+      }
+
+      if (records.websites.url) {
+        tables.websites.push(records.websites);
+      } else {
+        console.error("Skipping record due to missing url:", records.websites);
+      }
+
+      tables.products.push(records.products);
     });
+
+    console.log("Prepared data for Supabase:", tables);
 
     try {
       for (const table in tables) {
@@ -145,7 +177,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV File</h1>
+  <h1 class="leftAlign">Upload CSV File 22</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
@@ -173,7 +205,8 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
 
