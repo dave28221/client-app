@@ -163,9 +163,12 @@
     console.log("Prepared data for Supabase:", tables);
 
     try {
+      // Remove the unique constraint on email column in lawyerscontactprofiles table before inserting
+      await supabase.rpc('remove_email_unique_constraint'); // Assuming you created this RPC function
+
       for (const table in tables) {
         if (tables[table].length > 0) {
-          const { error } = await supabase.from(table).upsert(tables[table]);
+          const { error } = await supabase.from(table).upsert(tables[table], { onConflict: ['email'] });
           if (error) {
             console.error(`Error inserting into ${table}:`, error.message);
           } else {
@@ -180,7 +183,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Files</h1>
+  <h1 class="leftAlign">Upload CSV File</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
