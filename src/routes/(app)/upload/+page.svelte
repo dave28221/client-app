@@ -124,11 +124,27 @@
         websites: {},
       };
 
+      let lawfirmname = row["lawfirmname"] || "N/A"; // Extract the lawfirmname from the row
+
       columnMappings.forEach(({ header, table, column }) => {
         if (table && column) {
           records[table][column] = row[header] || null;
         }
       });
+
+      // Ensure lawfirmname is included in all tables
+      if (!records.lawfirm.lawfirmname) {
+        records.lawfirm.lawfirmname = lawfirmname;
+      }
+      if (!records.lawyerscontactprofiles.lawfirmname) {
+        records.lawyerscontactprofiles.lawfirmname = lawfirmname;
+      }
+      if (!records.products.lawfirmname) {
+        records.products.lawfirmname = lawfirmname;
+      }
+      if (!records.websites.lawfirmname) {
+        records.websites.lawfirmname = lawfirmname;
+      }
 
       if (records.lawfirm.lawfirmname) {
         tables.lawfirm.push(records.lawfirm);
