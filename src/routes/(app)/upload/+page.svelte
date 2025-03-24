@@ -139,22 +139,24 @@
         );
       }
 
-      if (records.lawyerscontactprofiles.email) {
+      const lawfirmname = records.lawfirm.lawfirmname || null;
+
+      if (lawfirmname) {
+        if (!records.lawyerscontactprofiles.lawfirmname) {
+          records.lawyerscontactprofiles.lawfirmname = lawfirmname;
+        }
         tables.lawyerscontactprofiles.push(records.lawyerscontactprofiles);
-      } else {
-        console.error(
-          "Skipping record due to missing email:",
-          records.lawyerscontactprofiles,
-        );
-      }
 
-      if (records.websites.url) {
+        if (!records.products.lawfirmname) {
+          records.products.lawfirmname = lawfirmname;
+        }
+        tables.products.push(records.products);
+
+        if (!records.websites.lawfirmname) {
+          records.websites.lawfirmname = lawfirmname;
+        }
         tables.websites.push(records.websites);
-      } else {
-        console.error("Skipping record due to missing url:", records.websites);
       }
-
-      tables.products.push(records.products);
     });
 
     console.log("Prepared data for Supabase:", tables);
@@ -177,7 +179,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV File 22</h1>
+  <h1 class="leftAlign">Upload CSV File 4</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
