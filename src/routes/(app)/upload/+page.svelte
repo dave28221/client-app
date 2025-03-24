@@ -2,6 +2,8 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
+  // FIX SKIPPED COLUMNS //
+
   const tableColumns = {
     lawfirm: [
       "lawfirmname",
@@ -130,17 +132,13 @@
         }
       });
 
-      // Ensure lawfirmname is provided, fallback to "N/A" if missing
       const lawfirmname = records.lawfirm.lawfirmname || "N/A";
 
-      // Insert into lawfirm table
       if (records.lawfirm.lawfirmname) {
         tables.lawfirm.push(records.lawfirm);
       } else {
         console.error("Skipping record due to missing lawfirmname:", records.lawfirm);
       }
-
-      // Ensure lawfirmname is set for related tables if missing
       if (!records.lawyerscontactprofiles.lawfirmname) {
         records.lawyerscontactprofiles.lawfirmname = lawfirmname;
       }
@@ -150,7 +148,6 @@
         console.error("Skipping record due to missing email:", records.lawyerscontactprofiles);
       }
 
-      // Insert into websites table, ensure lawfirmname is present
       if (!records.websites.lawfirmname) {
         records.websites.lawfirmname = lawfirmname;
       }
@@ -159,8 +156,6 @@
       } else {
         console.error("Skipping record due to missing url:", records.websites);
       }
-
-      // Insert into products table, ensure lawfirmname is set
       if (!records.products.lawfirmname) {
         records.products.lawfirmname = lawfirmname;
       }
@@ -187,7 +182,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV Files test</h1>
+  <h1 class="leftAlign">Upload CSV File</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
