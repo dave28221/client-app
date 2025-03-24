@@ -130,17 +130,17 @@
         }
       });
 
-      // Ensure lawfirmname is included in the lawfirm table
+      // Ensure lawfirmname is provided, fallback to "N/A" if missing
+      const lawfirmname = records.lawfirm.lawfirmname || "N/A";
+
+      // Insert into lawfirm table
       if (records.lawfirm.lawfirmname) {
         tables.lawfirm.push(records.lawfirm);
       } else {
         console.error("Skipping record due to missing lawfirmname:", records.lawfirm);
       }
 
-      // Parsing lawfirmname into all other tables
-      const lawfirmname = records.lawfirm.lawfirmname || "N/A"; // Set default lawfirmname if missing
-
-      // Insert into lawyerscontactprofiles
+      // Ensure lawfirmname is set for related tables if missing
       if (!records.lawyerscontactprofiles.lawfirmname) {
         records.lawyerscontactprofiles.lawfirmname = lawfirmname;
       }
@@ -150,13 +150,7 @@
         console.error("Skipping record due to missing email:", records.lawyerscontactprofiles);
       }
 
-      // Insert into products
-      if (!records.products.lawfirmname) {
-        records.products.lawfirmname = lawfirmname;
-      }
-      tables.products.push(records.products);
-
-      // Insert into websites
+      // Insert into websites table, ensure lawfirmname is present
       if (!records.websites.lawfirmname) {
         records.websites.lawfirmname = lawfirmname;
       }
@@ -165,6 +159,12 @@
       } else {
         console.error("Skipping record due to missing url:", records.websites);
       }
+
+      // Insert into products table, ensure lawfirmname is set
+      if (!records.products.lawfirmname) {
+        records.products.lawfirmname = lawfirmname;
+      }
+      tables.products.push(records.products);
     });
 
     console.log("Prepared data for Supabase:", tables);
@@ -187,7 +187,7 @@
 </script>
 
 <div class="homeBanner">
-  <h1 class="leftAlign">Upload CSV File</h1>
+  <h1 class="leftAlign">Upload CSV Files</h1>
   <div class="searchAndAdd">
     <input type="file" accept=".csv" on:change={handleFileChange} />
     <button on:click={handleFileUpload}>Import CSV</button>
@@ -218,6 +218,7 @@
     <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
   </div>
 {/if}
+
 
 
 <style>
