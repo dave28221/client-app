@@ -18,6 +18,7 @@
 		currentPage,
 	});
 
+
 	onMount(() => {
 		updateVisibleLawyers();
 	});
@@ -26,6 +27,7 @@
 	buttonPressed.subscribe((value) => {
 		buttonPressedValue = value;
 	});
+
 
 	function updateVisibleLawyers() {
 		loading = true;
@@ -68,7 +70,7 @@
 </div>
 
 {#if loading}
-	<div class="spinner"></div>
+  <div class="spinner"></div>
 {/if}
 
 {#if !buttonPressedValue}
@@ -98,34 +100,34 @@
 						<a
 							class="lawyerLink"
 							href="/lawyers/{encodeURIComponent(
-								lawyer.firstname ?? ' ',
+								lawyer.firstname,
 							)}"
 						>
-							{lawyer.firstname ?? ""}
+							{lawyer.firstname}
 						</a>
 					</div>
 					<div class="lawFirm-cellTwo">
 						<a
 							class="lawyerLink"
 							href="/lawyers/{encodeURIComponent(
-								lawyer.firstname ?? '',
-							)}">{lawyer.email ?? " "}</a
+								lawyer.firstname,
+							)}">{lawyer.email}</a
 						>
 					</div>
 					<div class="lawFirm-cellThree">
 						<a
 							class="lawyerLink"
 							href="/lawyers/{encodeURIComponent(
-								lawyer.firstname ?? '',
-							)}">{lawyer.position ?? " "}</a
+								lawyer.firstname,
+							)}">{lawyer.position}</a
 						>
 					</div>
 					<div class="lawFirm-cellFour">
 						<a
 							class="lawyerLink"
 							href="/lawyers/{encodeURIComponent(
-								lawyer.firstname ?? '',
-							)}">{lawyer.lawfirmname ?? " "}</a
+								lawyer.firstname,
+							)}">{lawyer.lawfirmname}</a
 						>
 					</div>
 				</div>
@@ -162,8 +164,8 @@
 		text-align: center;
 	}
 
-	.defaultBlue {
-		width: 150px !important;
+	.defaultBlue{
+		width:150px !important;
 	}
 
 	.listTitle {
@@ -209,7 +211,7 @@
 		background-color: #ffffff;
 		margin-right: 50px;
 		display: block;
-		font-weight: bold;
+		font-weight:bold;
 	}
 
 	.table-container {
@@ -222,9 +224,9 @@
 	}
 
 	.lawyer-header {
-		display: contents;
+		display: contents; 
 		font-weight: bold;
-		background-color: #f2f2f2;
+		background-color: #f2f2f2; 
 		font-size: 20px;
 	}
 
@@ -241,6 +243,7 @@
 		height: 205px;
 		background-color: rgb(255, 255, 255);
 		border-radius: 10px;
+	
 	}
 
 	.cardShape:hover {
