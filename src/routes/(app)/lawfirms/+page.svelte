@@ -41,13 +41,15 @@
 	// Fetch Law FIrm Data from Supabase //
 
 	function updateVisibleLawFirms() {
+		loading = true;
 		if (search) {
 			visibleLawFirms = data.lawfirm.filter((lawF) =>
-				lawF.lawfirmname.toLowerCase().includes(search),
+				lawF.lawfirmname.toLowerCase().includes(search)
 			);
 		} else {
 			visibleLawFirms = data.lawfirm;
 		}
+		loading = false;
 	}
 
 	function updateSearch(e) {

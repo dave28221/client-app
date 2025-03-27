@@ -151,8 +151,13 @@
 
     $: fetchData();
     async function fetchData() {
-        await getProducts();
-        await getWebsites();
+        loading = true;
+        try {
+            await getProducts();
+            await getWebsites();
+        } finally {
+            loading = false;
+        }
     }
 </script>
 
@@ -173,6 +178,12 @@
         </button>
     </div>
 </div>
+
+{#if loading}
+    <div class="loading">
+        <svelte:component this={Circle} size="60" color="#0073b1" unit="px" />
+    </div>
+{/if}
 
 <div>
     {#if showProducts}

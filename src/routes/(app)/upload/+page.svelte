@@ -2,7 +2,11 @@
   import Papa from "papaparse";
   import { supabase } from "../../../lib/supabaseClient";
 
+  let loading = false;
+
   // FIX SKIPPED COLUMNS //
+  // Go to lawyers page and change website to lawfirmname on front-end //
+  // fix search - won't work with null //
 
   const tableColumns = {
     lawfirm: [
@@ -100,8 +104,9 @@
   }
 
   async function handleDataInsert() {
+    loading = true;
     const unmappedHeaders = columnMappings.filter(
-      (mapping) => !mapping.table || !mapping.column,
+      (mapping) => !mapping.table || !mapping.column
     );
 
     if (unmappedHeaders.length > 0) {
@@ -177,6 +182,8 @@
       }
     } catch (error) {
       console.error("Error inserting data:", error.message);
+    } finally {
+      loading = false;
     }
   }
 </script>
@@ -188,6 +195,10 @@
     <button on:click={handleFileUpload}>Import CSV</button>
   </div>
 </div>
+
+{#if loading}
+  <div class="spinner"></div>
+{/if}
 
 {#if headers.length}
   <div class="mappingSection">
@@ -305,5 +316,25 @@
     margin-top: 20px;
     margin-left: 5%;
     margin-bottom: 50px;
+  }
+
+  .spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: #6161ff;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
   }
 </style>

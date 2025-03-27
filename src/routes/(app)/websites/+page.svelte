@@ -26,7 +26,12 @@
 
     $: fetchData();
     async function fetchData() {
-        await getWebsites();
+        loading = true;
+        try {
+            await getWebsites();
+        } finally {
+            loading = false;
+        }
     }
 
     let buttonPressedValue;

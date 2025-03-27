@@ -4,10 +4,12 @@
 	import { onMount } from "svelte";
 
 	export let data;
+    let loading = false;
 	const clientId = $page.params.clientId;
 	let editing = false;
 
 	async function submitToDatabase(client) {
+        loading = true;
 		try {
 			const { data, error } = await supabase
 				.from("lawyerscontactprofiles")
@@ -32,8 +34,10 @@
 				throw error;
 			}
 			console.log(data);
+            loading = false;
 		} catch (error) {
 			console.error("Error updating row:", error.message);
+            loading = false;
 		}
 	}
 
@@ -48,6 +52,10 @@
 <div class="lawFirmBanner">
 	<h1>{decodeURIComponent(clientId)}</h1>
 </div>
+
+{#if loading}
+  <div class="spinner"></div>
+{/if}
 <!-- sort out display law firm error if it doesn't exist -->
 
 {#each data.lawyers as client}
@@ -233,4 +241,24 @@
 	@media screen and (max-width: 512px) {
 		/* Styles for smaller screens */
 	}
+
+    .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border-left-color: #6161ff;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
 </style>

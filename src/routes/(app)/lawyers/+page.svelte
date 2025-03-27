@@ -6,6 +6,7 @@
 
 	export let data;
 
+	let loading = false;
 	let search = "";
 	let visibleLawyers = [];
 	let currentPage = 1;
@@ -17,7 +18,7 @@
 		currentPage,
 	});
 
-	// component mounts to DOM before search is performed //
+
 	onMount(() => {
 		updateVisibleLawyers();
 	});
@@ -28,9 +29,8 @@
 	});
 
 
-	// fetch lawyer data from Supabase //
-
 	function updateVisibleLawyers() {
+		loading = true;
 		if (search) {
 			visibleLawyers = data.lawyers.filter((lawyer) => {
 				return lawyer.firstname.toLowerCase().includes(search);
@@ -38,6 +38,7 @@
 		} else {
 			visibleLawyers = data.lawyers;
 		}
+		loading = false;
 	}
 
 	function updateSearch(e) {
@@ -67,6 +68,10 @@
 		>
 	</div>
 </div>
+
+{#if loading}
+  <div class="spinner"></div>
+{/if}
 
 {#if !buttonPressedValue}
 	<!-- Card View -->
@@ -346,6 +351,26 @@
 	@media screen and (max-width: 600px) {
 		.lawyer-grid {
 			grid-template-columns: 1fr;
+		}
+	}
+
+	.spinner {
+		border: 4px solid rgba(0, 0, 0, 0.1);
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		border-left-color: #6161ff;
+		animation: spin 1s linear infinite;
+		margin: 20px auto;
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+
+		100% {
+			transform: rotate(360deg);
 		}
 	}
 </style>
