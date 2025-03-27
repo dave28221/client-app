@@ -127,7 +127,7 @@
 							class="lawyerLink"
 							href="/lawyers/{encodeURIComponent(
 								lawyer.firstname,
-							)}">{lawyer.website}</a
+							)}">{lawyer.lawfirmname}</a
 						>
 					</div>
 				</div>
