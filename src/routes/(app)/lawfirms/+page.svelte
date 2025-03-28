@@ -95,7 +95,7 @@
 				>
 					<li class="cardShape">
 						<div class="listTitle">{lawFirm.lawfirmname}</div>
-						<div>{lawFirm.websiteurl}</div>
+						<div>{lawFirm.websiteurl ?? " "}</div>
 					</li>
 				</a>
 			{/each}
@@ -141,7 +141,7 @@
 									lawFirm.lawfirmname,
 								)}"
 							>
-								{lawFirm.emailaddress}
+								{lawFirm.emailaddress ?? " "}
 							</a>
 						</div>
 						<div class="lawFirm-cellFour">
@@ -152,7 +152,7 @@
 									lawFirm.lawfirmname,
 								)}"
 							>
-								{lawFirm.phonenumber}
+								{lawFirm.phonenumber ?? " "}
 							</a>
 						</div>
 					</div>

@@ -77,10 +77,10 @@
 	<!-- Card View -->
 	<ul class="flexCards" in:fade>
 		{#each paginatedItems as lawyer}
-			<a href="/lawyers/{encodeURIComponent(lawyer.firstname)}">
+			<a href="/lawyers/{encodeURIComponent(lawyer.firstname ?? " ")}">
 				<li class="cardShape">
 					<div class="listTitle">{lawyer.firstname}</div>
-					<div>{lawyer.email}</div>
+					<div>{lawyer.email ?? " "}</div>
 				</li>
 			</a>
 		{/each}
@@ -103,7 +103,7 @@
 								lawyer.firstname,
 							)}"
 						>
-							{lawyer.firstname}
+							{lawyer.firstname ?? " "}
 						</a>
 					</div>
 					<div class="lawFirm-cellTwo">
@@ -111,7 +111,7 @@
 							class="lawyerLink"
 							href="/lawyers/{encodeURIComponent(
 								lawyer.firstname,
-							)}">{lawyer.email}</a
+							)}">{lawyer.email ?? " "}</a
 						>
 					</div>
 					<div class="lawFirm-cellThree">
@@ -119,7 +119,7 @@
 							class="lawyerLink"
 							href="/lawyers/{encodeURIComponent(
 								lawyer.firstname,
-							)}">{lawyer.position}</a
+							)}">{lawyer.position ?? " "}</a
 						>
 					</div>
 					<div class="lawFirm-cellFour">
@@ -127,7 +127,7 @@
 							class="lawyerLink"
 							href="/lawyers/{encodeURIComponent(
 								lawyer.firstname,
-							)}">{lawyer.lawfirmname}</a
+							)}">{lawyer.lawfirmname ?? " "}</a
 						>
 					</div>
 				</div>
