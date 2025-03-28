@@ -79,7 +79,7 @@
 		{#each paginatedItems as lawyer}
 			<a href="/lawyers/{encodeURIComponent(lawyer.firstname ?? " ")}">
 				<li class="cardShape">
-					<div class="listTitle">{lawyer.firstname}</div>
+					<div class="listTitle">{lawyer.firstname ?? " "}</div>
 					<div>{lawyer.email ?? " "}</div>
 				</li>
 			</a>
