@@ -130,7 +130,7 @@
 									lawFirm.lawfirmname,
 								)}"
 							>
-								{lawFirm.websiteurl}
+								{lawFirm.websiteurl ?? " "}
 							</a>
 						</div>
 						<div class="lawFirm-cellThree">
