@@ -18,7 +18,6 @@
 		currentPage,
 	});
 
-
 	onMount(() => {
 		updateVisibleLawyers();
 	});
@@ -28,17 +27,18 @@
 		buttonPressedValue = value;
 	});
 
-
 	function updateVisibleLawyers() {
 		loading = true;
-		if (search) {
+		$: if (loading) {} // Ensure reactivity
+
+		setTimeout(() => {
 			visibleLawyers = data.lawyers.filter((lawyer) => {
-				return lawyer.firstname.toLowerCase().includes(search);
+				const name = lawyer.firstname?.toLowerCase() || ""; // Handle null values
+				return name.includes(search);
 			});
-		} else {
-			visibleLawyers = data.lawyers;
-		}
-		loading = false;
+
+			loading = false;
+		}, 300); // Simulate a slight delay for smooth UI update
 	}
 
 	function updateSearch(e) {
@@ -64,8 +64,7 @@
 			bind:value={search}
 			on:input={updateSearch}
 		/>
-		<a href="addclient"><button class="defaultBlue">+ New Lawyer</button></a
-		>
+		<a href="addclient"><button class="defaultBlue">+ New Lawyer</button></a>
 	</div>
 </div>
 
@@ -111,24 +110,21 @@
 							class="lawyerLink"
 							href="/lawyers/{encodeURIComponent(
 								lawyer.firstname,
-							)}">{lawyer.email ?? " "}</a
-						>
+							)}">{lawyer.email ?? " "}</a>
 					</div>
 					<div class="lawFirm-cellThree">
 						<a
 							class="lawyerLink"
 							href="/lawyers/{encodeURIComponent(
 								lawyer.firstname,
-							)}">{lawyer.position ?? " "}</a
-						>
+							)}">{lawyer.position ?? " "}</a>
 					</div>
 					<div class="lawFirm-cellFour">
 						<a
 							class="lawyerLink"
 							href="/lawyers/{encodeURIComponent(
 								lawyer.firstname,
-							)}">{lawyer.lawfirmname ?? " "}</a
-						>
+							)}">{lawyer.lawfirmname ?? " "}</a>
 					</div>
 				</div>
 			{/each}
