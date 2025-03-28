@@ -102,8 +102,8 @@
             {#each paginatedItems as webSite}
                 <a href="/lawfirms/{encodeURIComponent(webSite.lawfirm)}">
                     <li class="cardShape">
-                        <div class="listTitle">{webSite.url}</div>
-                        <div class="">{webSite.lawfirmname}</div>
+                        <div class="listTitle">{webSite.url ?? " "}</div>
+                        <div class="">{webSite.lawfirmname ?? " "}</div>
                     </li>
                 </a>
             {/each}
@@ -127,7 +127,7 @@
                                     webSite.lawfirmname,
                                 )}"
                             >
-                                {webSite.url}
+                                {webSite.url ?? " "}
                             </a>
                         </div>
                         <div class="lawFirm-cellTwo">
@@ -137,7 +137,7 @@
                                     webSite.lawfirmname,
                                 )}"
                             >
-                                {webSite.dnsinfol}
+                                {webSite.dnsinfol ?? " "}
                             </a>
                         </div>
                         <div class="lawFirm-cellThree">
@@ -147,7 +147,7 @@
                                     webSite.lawfirmname,
                                 )}"
                             >
-                                {webSite.theme}
+                                {webSite.theme ?? " "}
                             </a>
                         </div>
                         <div class="lawFirm-cellFour">
@@ -157,7 +157,7 @@
                                     webSite.lawfirmname,
                                 )}"
                             >
-                                {webSite.email}
+                                {webSite.email ?? " "}
                             </a>
                         </div>
                         <div class="lawFirm-cellFive">
@@ -167,7 +167,7 @@
                                     webSite.lawfirmname,
                                 )}"
                             >
-                                {webSite.lawfirmname}
+                                {webSite.lawfirmname ?? " "}
                             </a>
                         </div>
                     </div>
