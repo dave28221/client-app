@@ -112,7 +112,7 @@
 			// Insert law firm data
 			const { data: lawfirmInsertedData, error: lawfirmError } =
 				await supabase
-					.from("lawfirmname")
+					.from("lawfirm")
 					.insert([lawfirmData])
 					.select()
 					.single();
