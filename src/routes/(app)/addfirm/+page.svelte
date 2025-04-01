@@ -119,11 +119,12 @@
 
 			if (lawfirmError) throw new Error(lawfirmError.message);
 
+			// Use the correct column name that exists in `products`
 			const lawfirmId = lawfirmInsertedData.lawfirmname;
 
 			const productsDataWithLawfirm = {
 				...productsData,
-				lawfirm: lawfirmId,
+				lawfirmname: lawfirmId, // Changed from "lawfirm" to "lawfirmname"
 			};
 
 			// Insert product data
