@@ -152,6 +152,10 @@
 				return acc;
 			}, {});
 		}
+		// Check if the error is a Supabase error
+		if (err.message) {
+			return { general: err.message };
+		}
 		return { general: "An unknown error occurred. Please try again." };
 	}
 </script>
