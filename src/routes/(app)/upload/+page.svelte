@@ -199,10 +199,12 @@
   <div class="searchAndAdd">
     <input
       type="file"
-      class="uploadButton"
+      id="fileInput"
+      class="hiddenFileInput"
       accept=".csv"
       on:change={handleFileChange}
     />
+    <label for="fileInput" class="styledButton">Upload CSV</label>
     <button on:click={handleFileUpload}>Import CSV</button>
   </div>
 </div>
@@ -248,16 +250,12 @@
     display: inline-block;
   }
 
-  input[type="file"] + label {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
-    border-radius: 5px;
+  .hiddenFileInput {
+    display: none;
   }
 
-  .uploadButton {
+  .styledButton,
+  button {
     background-color: #f2f2f2;
     color: rgb(0, 0, 0);
     padding: 10px 20px;
@@ -267,9 +265,15 @@
     font-size: 16px;
     width: 150px;
     transition: background-color 0.3s ease;
+    text-align: center;
+    display: inline-block;
   }
 
-  
+  .styledButton:hover,
+  button:hover {
+    background-color: #e0e0e0;
+  }
+
   button {
     background-color: #f2f2f2;
     color: rgb(0, 0, 0);
