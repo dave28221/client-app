@@ -106,7 +106,7 @@
   async function handleDataInsert() {
     loading = true;
     const unmappedHeaders = columnMappings.filter(
-      (mapping) => !mapping.table || !mapping.column
+      (mapping) => !mapping.table || !mapping.column,
     );
 
     if (unmappedHeaders.length > 0) {
@@ -142,7 +142,10 @@
       if (records.lawfirm.lawfirmname) {
         tables.lawfirm.push(records.lawfirm);
       } else {
-        console.error("Skipping record due to missing lawfirmname:", records.lawfirm);
+        console.error(
+          "Skipping record due to missing lawfirmname:",
+          records.lawfirm,
+        );
       }
       if (!records.lawyerscontactprofiles.lawfirmname) {
         records.lawyerscontactprofiles.lawfirmname = lawfirmname;
@@ -150,7 +153,10 @@
       if (records.lawyerscontactprofiles.email) {
         tables.lawyerscontactprofiles.push(records.lawyerscontactprofiles);
       } else {
-        console.error("Skipping record due to missing email:", records.lawyerscontactprofiles);
+        console.error(
+          "Skipping record due to missing email:",
+          records.lawyerscontactprofiles,
+        );
       }
 
       if (!records.websites.lawfirmname) {
@@ -191,7 +197,12 @@
 <div class="homeBanner">
   <h1 class="leftAlign">Upload CSV File</h1>
   <div class="searchAndAdd">
-    <input type="file" accept=".csv" on:change={handleFileChange} />
+    <input
+      type="file"
+      class="uploadButton"
+      accept=".csv"
+      on:change={handleFileChange}
+    />
     <button on:click={handleFileUpload}>Import CSV</button>
   </div>
 </div>
@@ -221,11 +232,10 @@
         {/if}
       </div>
     {/each}
-    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button>
+    <button class="insertButton" on:click={handleDataInsert}>Insert Data</button
+    >
   </div>
 {/if}
-
-
 
 <style>
   .searchAndAdd {
@@ -247,6 +257,19 @@
     border-radius: 5px;
   }
 
+  .uploadButton {
+    background-color: #f2f2f2;
+    color: rgb(0, 0, 0);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 150px;
+    transition: background-color 0.3s ease;
+  }
+
+  
   button {
     background-color: #f2f2f2;
     color: rgb(0, 0, 0);
