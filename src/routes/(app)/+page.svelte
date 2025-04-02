@@ -72,7 +72,7 @@
 				/>
 			</svg>
 		</span>
-		<span>Websites</span>
+		<span>Upload CSV</span>
 	</a>
 </div>
 
