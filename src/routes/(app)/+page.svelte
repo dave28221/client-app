@@ -20,9 +20,9 @@
 					d="M3 21v-9H1V9l11-7 11 7v3h-2v9h-4v-6h-2v6h-4v-6H9v6H3zm2-2h2v-4h4v4h2v-4h4v4h2v-7h2v-1.2L12 4 3 10.8V12h2v7z"
 				/>
 			</svg>
-			<span>Law Firms</span>
-		</span></a
-	>
+		</span>
+		<span>Law Firms</span>
+	</a>
 
 	<a href="/lawyers" class="homeCount">
 		<span class="iconWrapper">
@@ -119,7 +119,7 @@
 
 	.homeCount {
 		text-align: center;
-		width: 270px;
+		width: 340px;
 		padding: 50px;
 		border: 1px solid rgb(222, 218, 218);
 		margin: 20px;
