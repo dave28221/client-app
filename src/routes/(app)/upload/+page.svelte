@@ -246,19 +246,17 @@
     gap: 10px;
   }
 
-  input[type="file"] {
-    display: inline-block;
-  }
-
   .hiddenFileInput {
-    display: none;
+    display: none !important;
   }
 
   .styledButton,
   button {
+    margin-right: 15px;
     background-color: #f2f2f2;
     color: rgb(0, 0, 0);
-    padding: 10px 20px;
+    padding: 12px 20px;
+    font-weight: bold;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -271,7 +269,8 @@
 
   .styledButton:hover,
   button:hover {
-    background-color: #e0e0e0;
+    background-color: #292828;
+    color: #ffffff;
   }
 
   button {
