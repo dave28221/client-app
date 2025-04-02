@@ -6,4 +6,4 @@ export function changeTheLayout() {
     buttonPressed.update(value => !value);
 }
 
-// this will change layout on all pages 
+//layout alter across app
