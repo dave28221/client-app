@@ -2,8 +2,7 @@
     import logo from "../../lib/assets/google.png";
     import companyLogo from "../../lib/assets/company-logo.svg";
     import { enhance } from "$app/forms";
-    import { supabaseAuth as supabase } from "$lib/supabaseAuthClient.js";
-
+    import { supabase } from "$lib/supabaseClient.js";
 
     const signInWithProvider = async (provider) => {
         const { data, error } = await supabase.auth.signInWithOAuth({
