@@ -4,9 +4,9 @@
 
   let loading = false;
 
+  // flash red import button when csv is uploaded
+
   // FIX SKIPPED COLUMNS //
-  // Go to lawyers page and change website to lawfirmname on front-end //
-  // fix search - won't work with null //
 
   const tableColumns = {
     lawfirm: [
